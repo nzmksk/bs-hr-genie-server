@@ -1,36 +1,19 @@
 DROP TABLE IF EXISTS department;
-DROP TABLE IF EXISTS roles;
-DROP TABLE IF EXISTS permission;
-DROP TABLE IF EXISTS role_permission;
 DROP TABLE IF EXISTS employee;
 DROP TABLE IF EXISTS leave_quota;
 DROP TABLE IF EXISTS leave;
+
+CREATE TYPE role AS ENUM ('employee', 'manager', 'admin');
 
 CREATE TABLE department(
     department_id VARCHAR(3) PRIMARY KEY,
     department_name VARCHAR(50)
 );
 
-CREATE TABLE roles(
-    role_id SERIAL PRIMARY KEY,
-    role_name VARCHAR(50) NOT NULL
-);
-
-CREATE TABLE permission(
-    permission_id SERIAL PRIMARY KEY,
-    permission_name VARCHAR(50) NOT NULL
-);
-
-CREATE TABLE role_permission(
-    role_id INT NOT NULL REFERENCES roles(role_id),
-    permission_id INT NOT NULL REFERENCES permission(permission_id),
-    PRIMARY KEY (role_id, permission_id)
-);
-
 CREATE TABLE employee(
     employee_id VARCHAR(6) PRIMARY KEY,
     department_id VARCHAR(3) NOT NULL REFERENCES department(department_id),
-    role_id INT NOT NULL REFERENCES roles(role_id),
+    role_type role DEFAULT 'employee',
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     email VARCHAR(50) NOT NULL,
@@ -43,7 +26,7 @@ CREATE TABLE employee(
     joined_date DATE,
     tenure INT DEFAULT 0,
     position_level INT DEFAULT 1,
-    created_at DATE
+    created_at DATE NOT NULL DEFAULT CURRENT_DATE
 );
 
 CREATE TABLE leave_quota(
@@ -66,3 +49,9 @@ CREATE TABLE leave(
     is_approved BOOLEAN DEFAULT FALSE,
     approved_rejected_by VARCHAR(6)
 );
+
+INSERT INTO department (department_id, department_name)
+VALUES ('HR', 'Human Resources'), ('BE', 'Backend Development');
+
+INSERT INTO employee (employee_id, department_id, first_name, last_name, email, hash_password, nric)
+VALUES ('BE001', 'BE', 'Hafiz', 'Zabba', 'hafiz@besquare.com.my', '123testing', '123456789012');
