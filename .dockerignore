@@ -1,0 +1,10 @@
+data/
+db_init/
+server/node_modules/
+server/npm-debug.log
+.dockerignore
+.env
+.git
+.gitignore
+docker-compose.yml
+Dockerfile
