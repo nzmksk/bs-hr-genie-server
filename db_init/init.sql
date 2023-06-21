@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS employee;
 DROP TABLE IF EXISTS leave_quota;
 DROP TABLE IF EXISTS leave;
 
+CREATE TYPE gender_type AS ENUM ('male', 'female');
 CREATE TYPE role AS ENUM ('employee', 'manager', 'admin');
 
 CREATE TABLE department(
@@ -16,6 +17,7 @@ CREATE TABLE employee(
     role_type role DEFAULT 'employee',
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
+    gender gender_type NOT NULL,
     email VARCHAR(50) NOT NULL,
     hash_password VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
@@ -26,7 +28,8 @@ CREATE TABLE employee(
     joined_date DATE,
     tenure INT DEFAULT 0,
     position_level INT DEFAULT 1,
-    created_at DATE NOT NULL DEFAULT CURRENT_DATE
+    created_at DATE NOT NULL DEFAULT CURRENT_DATE,
+    UNIQUE (email)
 );
 
 CREATE TABLE leave_quota(
@@ -53,5 +56,5 @@ CREATE TABLE leave(
 INSERT INTO department (department_id, department_name)
 VALUES ('HR', 'Human Resources'), ('BE', 'Backend Development');
 
-INSERT INTO employee (employee_id, department_id, first_name, last_name, email, hash_password, nric)
-VALUES ('BE001', 'BE', 'Hafiz', 'Zabba', 'hafiz@besquare.com.my', '123testing', '123456789012');
+INSERT INTO employee (employee_id, department_id, first_name, last_name, gender, email, hash_password, nric)
+VALUES ('BE001', 'BE', 'Hafiz', 'Zabba', 'male', 'hafiz@besquare.com.my', '123testing', '123456789012');
