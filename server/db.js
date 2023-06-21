@@ -1,4 +1,4 @@
-import pg from "pg";
+const pg = require("pg");
 const { Pool } = pg;
 
 const pool = new Pool({
@@ -9,4 +9,4 @@ const pool = new Pool({
   database: process.env.POSTGRES_DB,
 });
 
-export default pool;
+module.exports = pool;
