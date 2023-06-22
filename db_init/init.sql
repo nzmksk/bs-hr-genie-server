@@ -1,60 +1,95 @@
 DROP TABLE IF EXISTS department;
 DROP TABLE IF EXISTS employee;
+DROP TABLE IF EXISTS leave_category;
 DROP TABLE IF EXISTS leave_quota;
 DROP TABLE IF EXISTS leave;
 
-CREATE TYPE gender_type AS ENUM ('male', 'female');
-CREATE TYPE role AS ENUM ('employee', 'manager', 'admin');
-
 CREATE TABLE department(
     department_id VARCHAR(3) PRIMARY KEY,
-    department_name VARCHAR(50)
+    department_name VARCHAR(50) NOT NULL
 );
 
+CREATE TYPE gender_type AS ENUM ('male', 'female');
+CREATE TYPE role_type AS ENUM ('employee', 'manager', 'admin');
+CREATE SEQUENCE employee_id_seq;
 CREATE TABLE employee(
-    employee_id VARCHAR(6) PRIMARY KEY,
     department_id VARCHAR(3) NOT NULL REFERENCES department(department_id),
-    role_type role DEFAULT 'employee',
+    employee_id VARCHAR(6) PRIMARY KEY,
+    employee_role role_type DEFAULT 'employee',
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     gender gender_type NOT NULL,
     email VARCHAR(50) NOT NULL,
     hash_password VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
-    nric VARCHAR(12) NOT NULL,
-    is_first_login BOOLEAN DEFAULT TRUE,
+    nric CHAR(12) NOT NULL,
     is_probation BOOLEAN DEFAULT TRUE,
     is_married BOOLEAN DEFAULT FALSE,
     joined_date DATE,
-    tenure INT DEFAULT 0,
-    position_level INT DEFAULT 1,
+    position_level SMALLINT DEFAULT 1,
     created_at DATE NOT NULL DEFAULT CURRENT_DATE,
     UNIQUE (email)
 );
 
-CREATE TABLE leave_quota(
-    employee_id VARCHAR(6) NOT NULL REFERENCES employee(employee_id),
-    annual_leave INT,
-    sick_leave INT,
-    parental_leave INT,
-    emergency_leave INT
+-- Generate employee's ID based on employee's department ID
+CREATE OR REPLACE FUNCTION set_employee_id()
+    RETURNS TRIGGER AS
+$$
+BEGIN
+    NEW.employee_id := NEW.department_id || LPAD(CAST(NEXTVAL('employee_id_seq') AS VARCHAR), 3, '0');
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Call the function for each insertion on Employee table
+CREATE TRIGGER set_employee_id_trigger
+    BEFORE INSERT ON employee
+    FOR EACH ROW
+    EXECUTE FUNCTION set_employee_id();
+
+CREATE TYPE leave_type AS ENUM ('annual', 'medical', 'parental', 'emergency', 'unpaid');
+CREATE TABLE leave_category(
+    leave_type_id SMALLSERIAL PRIMARY KEY,
+    leave_type_name leave_type NOT NULL
 );
 
+CREATE TABLE leave_quota(
+    employee_id VARCHAR(6) NOT NULL REFERENCES employee(employee_id) ON DELETE CASCADE,
+    leave_type_id SMALLSERIAL NOT NULL REFERENCES leave_category(leave_type_id),
+    quota SMALLINT NOT NULL
+);
+
+CREATE TYPE status_type AS ENUM ('pending', 'approved', 'rejected');
+CREATE SEQUENCE leave_id_seq;
 CREATE TABLE leave(
-    leave_id VARCHAR(10) NOT NULL PRIMARY KEY,
-    employee_id VARCHAR(6) NOT NULL REFERENCES employee(employee_id),
+    leave_id VARCHAR(10) PRIMARY KEY,
+    employee_id VARCHAR(6) NOT NULL REFERENCES employee(employee_id) ON DELETE CASCADE,
+    leave_type_id SMALLSERIAL NOT NULL REFERENCES leave_category(leave_type_id),
     start_date DATE,
-    duration INT,
-    leave_type VARCHAR(20),
+    duration NUMERIC(2, 1),
     reason VARCHAR(255),
     attachment BYTEA,
-    is_pending BOOLEAN DEFAULT TRUE,
-    is_approved BOOLEAN DEFAULT FALSE,
+    application_status status_type DEFAULT 'pending',
     approved_rejected_by VARCHAR(6)
 );
+
+-- Generate leave ID based on employee's ID and leave type ID
+CREATE OR REPLACE FUNCTION set_leave_id()
+    RETURNS TRIGGER AS
+$$
+BEGIN
+    NEW.leave_id := NEW.employee_id || '-' || NEW.leave_type_id || LPAD(CAST(NEXTVAL('leave_id_seq') AS VARCHAR), 2, '0');
+END;
+$$ LANGUAGE plpgsql;
+
+-- Call the function for each insertion on Leave table
+CREATE TRIGGER set_leave_id_trigger
+    BEFORE INSERT ON leave
+    FOR EACH ROW
+    EXECUTE FUNCTION set_leave_id();
 
 INSERT INTO department (department_id, department_name)
 VALUES ('HR', 'Human Resources'), ('BE', 'Backend Development');
 
-INSERT INTO employee (employee_id, department_id, first_name, last_name, gender, email, hash_password, nric)
-VALUES ('BE001', 'BE', 'Hafiz', 'Zabba', 'male', 'hafiz@besquare.com.my', '123testing', '123456789012');
+INSERT INTO employee (department_id, first_name, last_name, gender, email, hash_password, nric)
+VALUES ('BE', 'Hafiz', 'Zabba', 'male', 'hafiz@besquare.com.my', '123testing', '123456789012');
