@@ -35,8 +35,19 @@ CREATE TABLE employee(
 CREATE OR REPLACE FUNCTION set_employee_id()
     RETURNS TRIGGER AS
 $$
+DECLARE
+    max_employee_id SMALLINT;
 BEGIN
-    NEW.employee_id := NEW.department_id || LPAD(CAST(NEXTVAL('employee_id_seq') AS VARCHAR), 3, '0');
+    SELECT MAX(CAST(SUBSTRING(employee_id FROM '\d+') AS SMALLINT))
+    INTO max_employee_id
+    FROM employee
+    WHERE department_id = NEW.department_id;
+
+    IF max_employee_id IS NULL THEN
+        max_employee_id := 0;
+    END IF;
+
+    NEW.employee_id := NEW.department_id || LPAD(CAST(max_employee_id + 1 AS VARCHAR), 3, '0');
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
