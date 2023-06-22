@@ -9,8 +9,8 @@ app.use(express.json());
 app.use("/admin", adminRoutes);
 app.use("/department", departmentRoutes);
 
-app.get("/", (req, res) => {
-  res.send("Hello world");
+app.get("/", (request, response) => {
+  response.send("Hello world");
 });
 
 app.listen(port, () => {
