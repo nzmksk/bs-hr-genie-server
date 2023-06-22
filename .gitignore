@@ -1,3 +1,4 @@
 data/
+server/coverage/
 server/node_modules/
 .env
