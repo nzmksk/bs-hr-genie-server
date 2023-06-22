@@ -19,7 +19,10 @@ const registerAdmin = async (request, response) => {
 
   const hashedPassword = await bcrypt.hash(nric, saltRounds);
   pool.query(queries.findEmployeeByEmail, [email], (error, results) => {
-    if (error) throw error;
+    if (error) {
+      console.error(error);
+      return response.status(500).json({ message: "Internal server error." });
+    }
     if (results.rows.length > 0) {
       response.status(409).json({ message: "Email is already registered." });
     } else {
@@ -36,7 +39,17 @@ const registerAdmin = async (request, response) => {
           hashedPassword,
         ],
         (error, results) => {
-          if (error) throw error;
+          if (error) {
+            console.error(error);
+            if (error.code === "23503" && error.constraint.includes("fkey")) {
+              return response
+                .status(400)
+                .json({ message: "Invalid department ID." });
+            }
+            return response
+              .status(500)
+              .json({ message: "Internal server error." });
+          }
           response.status(201).json({
             message: "Account successfully registered.",
           });
@@ -50,7 +63,10 @@ const loginAdmin = async (request, response) => {
   const { email, password } = request.body;
 
   pool.query(queries.findEmployeeByEmail, [email], (error, results) => {
-    if (error) throw error;
+    if (error) {
+      console.error(error);
+      return response.status(500).json({ message: "Internal server error." });
+    }
     if (results.rows.length === 0) {
       response
         .status(400)
@@ -58,10 +74,15 @@ const loginAdmin = async (request, response) => {
     } else {
       const hashedPassword = results.rows[0].hash_password;
       bcrypt.compare(password, hashedPassword, (error, isMatching) => {
-        if (error) throw error;
+        if (error) {
+          console.error(error);
+          return response
+            .status(500)
+            .json({ message: "Internal server error" });
+        }
         if (isMatching) {
           const token = jwt.sign({ email: email }, secretKey, {
-            expiresIn: "1h",
+            expiresIn: "15m",
           });
           return response
             .status(200)

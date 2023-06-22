@@ -3,8 +3,11 @@ const queries = require("../queries/queries.js");
 
 const getDepartments = (request, response) => {
   pool.query(queries.getDepartments, (error, results) => {
-    if (error) throw error;
-    response.status(200).json(results.rows);
+    if (error) {
+      console.error(error);
+      return response.status(500).json({ message: "Internal server error." });
+    }
+    response.status(200).json({ data: results.rows });
   });
 };
 
