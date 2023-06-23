@@ -26,7 +26,6 @@ CREATE TABLE employee(
     is_probation BOOLEAN,
     is_married BOOLEAN,
     joined_date DATE,
-    position_level SMALLINT DEFAULT 1,
     created_at DATE NOT NULL DEFAULT CURRENT_DATE,
     UNIQUE (email)
 );
