@@ -1,4 +1,4 @@
-const pool = require("../db.js");
+const pool = require("../app_config/db.js");
 const queries = require("../queries/queries.js");
 
 const getDepartments = (request, response) => {

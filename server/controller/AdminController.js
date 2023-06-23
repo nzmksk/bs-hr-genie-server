@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const pool = require("../db.js");
+const pool = require("../app_config/db.js");
 const queries = require("../queries/queries.js");
 
 const saltRounds = 10;
@@ -41,6 +41,11 @@ const registerAdmin = async (request, response) => {
         (error, results) => {
           if (error) {
             console.error(error);
+            if (error.code === "23502") {
+              return response
+                .status(400)
+                .json({ message: "Null value error." });
+            }
             if (error.code === "23503" && error.constraint.includes("fkey")) {
               return response
                 .status(400)

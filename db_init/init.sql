@@ -81,7 +81,8 @@ CREATE TABLE leave(
     reason VARCHAR(255),
     attachment BYTEA,
     application_status status_type DEFAULT 'pending',
-    approved_rejected_by VARCHAR(6)
+    approved_rejected_by VARCHAR(6),
+    reject_reason VARCHAR(255),
 );
 
 -- Generate leave ID based on employee's ID and leave type ID
