@@ -12,6 +12,19 @@ const getDepartments = (request, response) => {
   });
 };
 
+const getDepartmentByID = (request, response) => {
+  const departmentID = request.params.id;
+  pool.query(queries.getDepartmentByID, [departmentID], (error, results) => {
+    if (error) {
+      console.error(error);
+      return response.status(500).json({ message: "Internal server error." });
+    } else if (results.rows.length > 0) {
+      let department = results.rows[0];
+      return response.status(200).json({ data: department });
+    }
+  });
+};
+
 const createNewDepartment = (request, response) => {
   const { department_id, department_name } = request.body;
   if (department_id.length < 2) {
@@ -20,7 +33,7 @@ const createNewDepartment = (request, response) => {
       .json({ message: "Department ID should be at least 2 characters." });
   } else {
     pool.query(
-      queries.findDepartmentByID,
+      queries.getDepartmentByID,
       [department_id],
       (error, results) => {
         if (error) {
@@ -49,7 +62,7 @@ const createNewDepartment = (request, response) => {
                   });
                 } else if (error.code === "23505") {
                   pool.query(
-                    queries.findDepartmentByName,
+                    queries.getDepartmentByName,
                     [department_name],
                     (error, results) => {
                       if (error) {
@@ -59,12 +72,10 @@ const createNewDepartment = (request, response) => {
                           .json({ message: "Internal server error." });
                       } else {
                         let department = results.rows[0];
-                        return response
-                          .status(409)
-                          .json({
-                            data: department,
-                            message: "Department name already exists!",
-                          });
+                        return response.status(409).json({
+                          data: department,
+                          message: "Department name already exists!",
+                        });
                       }
                     }
                   );
@@ -90,5 +101,6 @@ const createNewDepartment = (request, response) => {
 
 module.exports = {
   getDepartments,
+  getDepartmentByID,
   createNewDepartment,
 };
