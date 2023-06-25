@@ -7,22 +7,27 @@ const getDepartments = (request, response) => {
       console.error(error);
       return response.status(500).json({ message: "Internal server error." });
     } else {
-      return response.status(200).json({ data: results.rows });
+      let departments = results.rows;
+      return response.status(200).json({ data: departments });
     }
   });
 };
 
 const getDepartmentByID = (request, response) => {
   const departmentID = request.params.id;
-  pool.query(queries.getDepartmentByID, [departmentID], (error, results) => {
-    if (error) {
-      console.error(error);
-      return response.status(500).json({ message: "Internal server error." });
-    } else if (results.rows.length > 0) {
-      let department = results.rows[0];
-      return response.status(200).json({ data: department });
+  pool.query(
+    queries.getDepartmentByID,
+    [departmentID.toUpperCase()],
+    (error, results) => {
+      if (error) {
+        console.error(error);
+        return response.status(500).json({ message: "Internal server error." });
+      } else if (results.rows.length > 0) {
+        let department = results.rows[0];
+        return response.status(200).json({ data: department });
+      }
     }
-  });
+  );
 };
 
 const createNewDepartment = (request, response) => {
@@ -34,7 +39,7 @@ const createNewDepartment = (request, response) => {
   } else {
     pool.query(
       queries.getDepartmentByID,
-      [department_id],
+      [department_id.toUpperCase()],
       (error, results) => {
         if (error) {
           console.error(error);
@@ -52,7 +57,7 @@ const createNewDepartment = (request, response) => {
         else {
           pool.query(
             queries.createNewDepartment,
-            [department_id, department_name],
+            [department_id.toUpperCase(), department_name],
             (error, results) => {
               if (error) {
                 console.error(error);
@@ -99,8 +104,41 @@ const createNewDepartment = (request, response) => {
   }
 };
 
+const updateDepartment = (request, response) => {
+  const oldDepartmentID = request.params.id;
+  const { department_id: newDepartmentID, department_name } = request.body;
+  try {
+    let department;
+    pool.query("BEGIN");
+    pool.query(
+      queries.updateDepartment,
+      [
+        newDepartmentID.toUpperCase(),
+        department_name,
+        oldDepartmentID.toUpperCase(),
+      ],
+      (error, results) => {
+        department = results.rows[0];
+      }
+    );
+    pool.query(queries.updateEmployeeDepartment, [
+      newDepartmentID.toUpperCase(),
+      oldDepartmentID.toUpperCase(),
+    ]);
+    pool.query("COMMIT");
+    return response
+      .status(200)
+      .json({ data: department, message: "Data updated successfully." });
+  } catch (error) {
+    console.error(error);
+    pool.query("ROLLBACK");
+    return response.status(500).json({ message: "Internal server error." });
+  }
+};
+
 module.exports = {
+  createNewDepartment,
   getDepartments,
   getDepartmentByID,
-  createNewDepartment,
+  updateDepartment,
 };

@@ -11,10 +11,10 @@ CREATE TABLE department(
 );
 
 CREATE TYPE gender_type AS ENUM ('male', 'female');
-CREATE TYPE role_type AS ENUM ('employee', 'manager', 'admin');
+CREATE TYPE role_type AS ENUM ('employee', 'manager', 'admin', 'resigned');
 CREATE SEQUENCE employee_id_seq;
 CREATE TABLE employee(
-    department_id VARCHAR(3) NOT NULL REFERENCES department(department_id),
+    department_id VARCHAR(3) NOT NULL REFERENCES department(department_id) ON DELETE CASCADE,
     employee_id VARCHAR(6) PRIMARY KEY,
     employee_role role_type NOT NULL,
     first_name VARCHAR(50) NOT NULL,

@@ -3,20 +3,32 @@ const registerNewEmployee = `INSERT INTO employee (department_id, employee_role,
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING *`;
 
+const createNewDepartment = `INSERT INTO department (department_id, department_name)
+VALUES ($1, $2)
+RETURNING *`;
 const getDepartmentByID = "SELECT * FROM department WHERE department_id = $1";
 const getDepartmentByName =
   "SELECT * FROM department WHERE department_name = $1";
 const getDepartments = "SELECT * FROM department";
-const createNewDepartment = `INSERT INTO department (department_id, department_name)
-VALUES ($1, $2)
-RETURNING *`;
+const updateDepartment = `UPDATE department
+SET department_id = $1,
+    department_name = $2
+WHERE department_id = $3
+RETURNING *;`;
+const updateEmployeeDepartment = `UPDATE employee
+SET department_id = CASE
+    WHEN department_id = $2 THEN $1
+    ELSE employee.department_id
+    END;`;
 
 module.exports = {
   findEmployeeByEmail,
   registerNewEmployee,
-  
+
+  createNewDepartment,
   getDepartmentByID,
   getDepartmentByName,
   getDepartments,
-  createNewDepartment,
+  updateDepartment,
+  updateEmployeeDepartment,
 };

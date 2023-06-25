@@ -5,6 +5,7 @@ const router = Router();
 
 router.get("/", departmentController.getDepartments);
 router.get("/:id", departmentController.getDepartmentByID);
+router.put("/:id", departmentController.updateDepartment);
 router.post("/create", departmentController.createNewDepartment);
 
 module.exports = router;
