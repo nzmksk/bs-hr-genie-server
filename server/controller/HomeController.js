@@ -24,8 +24,10 @@ const registerNewEmployee = async (request, response) => {
       return response.status(500).json({ message: "Internal server error." });
     }
     // If email exists in database
-    if (results.rows.length > 0) {
-      response.status(409).json({ message: "Email is already registered." });
+    else if (results.rows.length > 0) {
+      return response
+        .status(409)
+        .json({ message: "Email is already registered." });
     }
     // If email does not exist in database
     else {
@@ -51,18 +53,23 @@ const registerNewEmployee = async (request, response) => {
                 .json({ message: "Null value error." });
             }
             // If data insertion violates foreign key constraint
-            if (error.code === "23503" && error.constraint.includes("fkey")) {
+            else if (
+              error.code === "23503" &&
+              error.constraint.includes("fkey")
+            ) {
               return response
                 .status(400)
                 .json({ message: "Invalid department ID." });
+            } else {
+              return response
+                .status(500)
+                .json({ message: "Internal server error." });
             }
-            return response
-              .status(500)
-              .json({ message: "Internal server error." });
+          } else {
+            return response.status(201).json({
+              message: "Account successfully registered.",
+            });
           }
-          response.status(201).json({
-            message: "Account successfully registered.",
-          });
         }
       );
     }
@@ -78,8 +85,8 @@ const loginAccount = async (request, response) => {
       return response.status(500).json({ message: "Internal server error." });
     }
     // If email does not exist in database
-    if (results.rows.length === 0) {
-      response
+    else if (results.rows.length === 0) {
+      return response
         .status(400)
         .json({ message: "Email does not exist. Please contact admin." });
     }
@@ -94,7 +101,7 @@ const loginAccount = async (request, response) => {
             .json({ message: "Internal server error" });
         }
         // If password is valid
-        if (isMatching) {
+        else if (isMatching) {
           const token = jwt.sign({ email: email }, secretKey, {
             expiresIn: "15m",
           });
