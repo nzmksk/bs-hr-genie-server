@@ -6,7 +6,8 @@ DROP TABLE IF EXISTS leave;
 
 CREATE TABLE department(
     department_id VARCHAR(3) PRIMARY KEY,
-    department_name VARCHAR(50) NOT NULL
+    department_name VARCHAR(50) NOT NULL,
+    UNIQUE (department_name)
 );
 
 CREATE TYPE gender_type AS ENUM ('male', 'female');
@@ -26,6 +27,7 @@ CREATE TABLE employee(
     is_probation BOOLEAN,
     is_married BOOLEAN,
     joined_date DATE,
+    profile_image BYTEA,
     created_at DATE NOT NULL DEFAULT CURRENT_DATE,
     UNIQUE (email)
 );
@@ -69,6 +71,7 @@ CREATE TABLE leave_quota(
     quota SMALLINT NOT NULL
 );
 
+CREATE TYPE duration_type AS ENUM ('full-day', 'first-half', 'second-half');
 CREATE TYPE status_type AS ENUM ('pending', 'approved', 'rejected');
 CREATE SEQUENCE leave_id_seq;
 CREATE TABLE leave(
@@ -76,12 +79,13 @@ CREATE TABLE leave(
     employee_id VARCHAR(6) NOT NULL REFERENCES employee(employee_id) ON DELETE CASCADE,
     leave_type_id SMALLSERIAL NOT NULL REFERENCES leave_category(leave_type_id),
     start_date DATE,
-    duration NUMERIC(2, 1),
+    end_date DATE,
+    duration duration_type,
     reason VARCHAR(255),
     attachment BYTEA,
     application_status status_type DEFAULT 'pending',
     approved_rejected_by VARCHAR(6),
-    reject_reason VARCHAR(255),
+    reject_reason VARCHAR(255)
 );
 
 -- Generate leave ID based on employee's ID and leave type ID
@@ -102,5 +106,5 @@ CREATE TRIGGER set_leave_id_trigger
 INSERT INTO department (department_id, department_name)
 VALUES ('HR', 'Human Resources'), ('BE', 'Backend Development');
 
-INSERT INTO employee (department_id, first_name, last_name, gender, email, hash_password, nric)
-VALUES ('BE', 'Hafiz', 'Zabba', 'male', 'hafiz@besquare.com.my', '123testing', '123456789012');
+INSERT INTO employee (department_id, employee_role, first_name, last_name, gender, email, hash_password, nric)
+VALUES ('BE', 'employee', 'Hafiz', 'Zabba', 'male', 'hafiz@besquare.com.my', '123testing', '123456789012');
