@@ -28,7 +28,13 @@ const getDepartmentByID = (request, response) => {
       if (error) {
         console.error(error);
         return response.status(500).json({ message: "Internal server error." });
-      } else if (results.rows.length > 0) {
+      } 
+      // If data is not available
+      else if (results.rows.length === 0) {
+        return response.status(200).json({ message: "No data available." });
+      }
+      // If data is available
+      else {
         let department = results.rows[0];
         return response.status(200).json({ data: department });
       }
