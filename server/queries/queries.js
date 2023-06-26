@@ -1,10 +1,23 @@
 // EMPLOYEE
-const findEmployeeByEmail = "SELECT * FROM employee WHERE email = $1";
 const getEmployees = "SELECT * FROM employee";
-const getEmployeeByID = `SELECT * FROM employee
-WHERE employee_id = $1`;
+const getEmployeeByEmail = "SELECT * FROM employee WHERE email = $1";
+const getEmployeeByID = "SELECT * FROM employee WHERE employee_id = $1";
 const registerNewEmployee = `INSERT INTO employee (department_id, employee_role, first_name, last_name, gender, email, nric, hash_password)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING *`;
+const updateEmployeeDetails = `UPDATE employee
+SET department_id = $1,
+    employee_role = $2,
+    first_name = $3,
+    last_name = $4,
+    gender = $5,
+    email = $6,
+    phone = $7,
+    nric = $8,
+    is_probation = $9,
+    is_married = $10,
+    joined_date = $11
+WHERE employee_id = $12
 RETURNING *`;
 
 // DEPARTMENT
@@ -32,10 +45,11 @@ SET department_id = CASE
     END`;
 
 module.exports = {
-  findEmployeeByEmail,
   getEmployees,
+  getEmployeeByEmail,
   getEmployeeByID,
   registerNewEmployee,
+  updateEmployeeDetails,
 
   createNewDepartment,
   deleteDepartment,

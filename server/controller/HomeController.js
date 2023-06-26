@@ -18,7 +18,7 @@ const registerNewEmployee = async (request, response) => {
   } = request.body;
 
   const hashedPassword = await bcrypt.hash(nric, saltRounds);
-  pool.query(queries.findEmployeeByEmail, [email], (error, results) => {
+  pool.query(queries.getEmployeeByEmail, [email], (error, results) => {
     if (error) {
       console.error(error);
       return response.status(500).json({ message: "Internal server error." });
@@ -79,7 +79,7 @@ const registerNewEmployee = async (request, response) => {
 const loginAccount = async (request, response) => {
   const { email, password } = request.body;
 
-  pool.query(queries.findEmployeeByEmail, [email], (error, results) => {
+  pool.query(queries.getEmployeeByEmail, [email], (error, results) => {
     if (error) {
       console.error(error);
       return response.status(500).json({ message: "Internal server error." });

@@ -30,4 +30,49 @@ const getEmployeeByID = (request, response) => {
   );
 };
 
-module.exports = { getEmployees, getEmployeeByID };
+const updateEmployeeDetails = (request, response) => {
+  const {
+    department_id,
+    employee_id,
+    employee_role,
+    first_name,
+    last_name,
+    gender,
+    email,
+    phone,
+    nric,
+    is_probation,
+    is_married,
+    joined_date,
+  } = request.body;
+  pool.query(
+    queries.updateEmployeeDetails,
+    [
+      department_id,
+      employee_role,
+      first_name,
+      last_name,
+      gender,
+      email,
+      phone,
+      nric,
+      is_probation,
+      is_married,
+      joined_date,
+      employee_id,
+    ],
+    (error, results) => {
+      if (error) {
+        console.error(error);
+        return response.status(500).json({ message: "Internal server error." });
+      } else {
+        let employee = results.rows[0];
+        return response
+          .status(200)
+          .json({ data: employee, message: "Data updated successfully." });
+      }
+    }
+  );
+};
+
+module.exports = { getEmployees, getEmployeeByID, updateEmployeeDetails };
