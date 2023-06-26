@@ -136,9 +136,29 @@ const updateDepartment = (request, response) => {
   }
 };
 
+const deleteDepartment = (request, response) => {
+  const department_id = request.params.id;
+  pool.query(
+    queries.deleteDepartment,
+    [department_id.toUpperCase()],
+    (error, results) => {
+      if (error) {
+        console.error(error);
+        return response.status(500).json({ message: "Internal server error." });
+      } else {
+        let department = results.rows[0];
+        return response
+          .status(200)
+          .json({ data: department, message: "Data deleted successfully." });
+      }
+    }
+  );
+};
+
 module.exports = {
   createNewDepartment,
   getDepartments,
   getDepartmentByID,
   updateDepartment,
+  deleteDepartment,
 };

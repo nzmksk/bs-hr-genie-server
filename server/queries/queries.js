@@ -14,18 +14,22 @@ const updateDepartment = `UPDATE department
 SET department_id = $1,
     department_name = $2
 WHERE department_id = $3
-RETURNING *;`;
+RETURNING *`;
 const updateEmployeeDepartment = `UPDATE employee
 SET department_id = CASE
     WHEN department_id = $2 THEN $1
     ELSE employee.department_id
-    END;`;
+    END`;
+const deleteDepartment = `DELETE FROM department
+WHERE department_id = $1
+RETURNING *`;
 
 module.exports = {
   findEmployeeByEmail,
   registerNewEmployee,
 
   createNewDepartment,
+  deleteDepartment,
   getDepartmentByID,
   getDepartmentByName,
   getDepartments,
