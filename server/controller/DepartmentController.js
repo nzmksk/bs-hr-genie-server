@@ -138,21 +138,28 @@ const updateDepartment = (request, response) => {
 
 const deleteDepartment = (request, response) => {
   const department_id = request.params.id;
-  pool.query(
-    queries.deleteDepartment,
-    [department_id.toUpperCase()],
-    (error, results) => {
-      if (error) {
-        console.error(error);
-        return response.status(500).json({ message: "Internal server error." });
-      } else {
-        let department = results.rows[0];
-        return response
-          .status(200)
-          .json({ data: department, message: "Data deleted successfully." });
+  try {
+    let department;
+    pool.query("BEGIN");
+    pool.query(queries.deleteEmployeeInDepartment, [
+      department_id.toUpperCase(),
+    ]);
+    pool.query(
+      queries.deleteDepartment,
+      [department_id.toUpperCase()],
+      (error, results) => {
+        department = results.rows[0];
       }
-    }
-  );
+    );
+    pool.query("COMMIT");
+    return response
+      .status(200)
+      .json({ data: department, message: "Data deleted successfully." });
+  } catch (error) {
+    console.error(error);
+    pool.query("ROLLBACK");
+    return response.status(500).json({ message: "Internal server error." });
+  }
 };
 
 module.exports = {

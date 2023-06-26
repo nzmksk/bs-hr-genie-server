@@ -3,7 +3,7 @@ const homeController = require("../controller/HomeController.js");
 
 const router = Router();
 
-router.post("/register", homeController.registerNewEmployee);
 router.post("/login", homeController.loginAccount);
+router.post("/register", homeController.registerNewEmployee);
 
 module.exports = router;
