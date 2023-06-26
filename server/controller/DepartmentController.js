@@ -6,7 +6,13 @@ const getDepartments = (request, response) => {
     if (error) {
       console.error(error);
       return response.status(500).json({ message: "Internal server error." });
-    } else {
+    }
+    // If data is not available
+    else if (results.rows.length === 0) {
+      return response.status(200).json({ message: "No data available." });
+    }
+    // If data is available
+    else {
       let departments = results.rows;
       return response.status(200).json({ data: departments });
     }
