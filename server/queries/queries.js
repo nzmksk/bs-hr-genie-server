@@ -51,6 +51,22 @@ RETURNING *`;
 const applyLeave = `INSERT INTO leave (employee_id, leave_type_id, start_date, end_date, duration, reason, attachment)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *`;
+const approveRejectLeave = `UPDATE leave
+SET employee_id = $1,
+    leave_type_id = $2,
+    start_date = $3,
+    end_date = $4,
+    duration = $5,
+    reason = $6,
+    attachment = $7,
+    application_status = $8,
+    approved_rejected_by = $9,
+    reject_reason = $10
+WHERE leave_id = $11
+RETURNING *`;
+const deleteLeaveApplication = `DELETE FROM leave
+WHERE leave_id = $1
+RETURNING *`;
 const getLeaveApplications = "SELECT * FROM leave";
 const getLeaveApplicationsByDepartment = `SELECT * FROM leave
 WHERE leave_id LIKE '%' || $1 || '%'`;
@@ -74,6 +90,8 @@ module.exports = {
   updateEmployeeDetails,
   // Leave
   applyLeave,
+  approveRejectLeave,
+  deleteLeaveApplication,
   getLeaveApplications,
   getLeaveApplicationsByDepartment,
 };

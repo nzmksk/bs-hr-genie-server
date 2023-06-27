@@ -75,8 +75,72 @@ const applyLeave = (request, response) => {
   );
 };
 
+const approveRejectLeave = (request, response) => {
+  const leave_id = request.params.id;
+  const {
+    employee_id,
+    leave_type_id,
+    start_date,
+    end_date,
+    duration,
+    reason,
+    attachment,
+    application_status,
+    approved_rejected_by,
+    reject_reason,
+  } = request.body;
+  pool.query(
+    queries.approveRejectLeave,
+    [
+      employee_id,
+      leave_type_id,
+      start_date,
+      end_date,
+      duration,
+      reason,
+      attachment,
+      application_status,
+      approved_rejected_by,
+      reject_reason,
+      leave_id,
+    ],
+    (error, results) => {
+      if (error) {
+        console.error(error);
+        return response.status(500).json({ message: "Internal server error." });
+      } else {
+        let leaveApplication = results.rows[0];
+        return response
+          .status(200)
+          .json({ message: "Data updated successfully." });
+      }
+    }
+  );
+};
+
+const deleteLeaveApplication = (request, response) => {
+  const leave_id = request.params.id;
+  try {
+    let leaveApplication;
+    pool.query("BEGIN");
+    pool.query(queries.deleteLeaveApplication, [leave_id], (error, results) => {
+      leaveApplication = results.rows[0];
+    });
+    pool.query("COMMIT");
+    return response
+      .status(200)
+      .json({ data: leaveApplication, message: "Data deleted successfully." });
+  } catch (error) {
+    console.error(error);
+    pool.query("ROLLBACK");
+    return response.status(500).json({ message: "Internal server error." });
+  }
+};
+
 module.exports = {
   applyLeave,
+  approveRejectLeave,
+  deleteLeaveApplication,
   getLeaveApplications,
   getLeaveApplicationsByDepartment,
 };
