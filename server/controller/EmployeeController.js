@@ -31,9 +31,9 @@ const getEmployeeByID = (request, response) => {
 };
 
 const updateEmployeeDetails = (request, response) => {
+  const employee_id = request.params.id;
   const {
     department_id,
-    employee_id,
     employee_role,
     first_name,
     last_name,
@@ -75,4 +75,32 @@ const updateEmployeeDetails = (request, response) => {
   );
 };
 
-module.exports = { getEmployees, getEmployeeByID, updateEmployeeDetails };
+const deleteEmployee = (request, response) => {
+  const employeeID = request.params.id;
+  try {
+    let employee;
+    pool.query("BEGIN");
+    pool.query(
+      queries.deleteEmployee,
+      [employeeID.toUpperCase()],
+      (error, results) => {
+        employee = results.rows[0];
+      }
+    );
+    pool.query("COMMIT");
+    return response
+      .status(200)
+      .json({ data: employee, message: "Data deleted successfully." });
+  } catch (error) {
+    console.error(error);
+    pool.query("ROLLBACK");
+    return response.status(500).json({ message: "Internal server error." });
+  }
+};
+
+module.exports = {
+  getEmployees,
+  getEmployeeByID,
+  updateEmployeeDetails,
+  deleteEmployee,
+};

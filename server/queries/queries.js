@@ -1,4 +1,7 @@
 // EMPLOYEE
+const deleteEmployee = `DELETE FROM employee
+WHERE employee_id = $1
+RETURNING *`;
 const getEmployees = "SELECT * FROM employee";
 const getEmployeeByEmail = "SELECT * FROM employee WHERE email = $1";
 const getEmployeeByID = "SELECT * FROM employee WHERE employee_id = $1";
@@ -45,6 +48,7 @@ SET department_id = CASE
     END`;
 
 module.exports = {
+  deleteEmployee,
   getEmployees,
   getEmployeeByEmail,
   getEmployeeByID,

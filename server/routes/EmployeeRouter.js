@@ -6,5 +6,6 @@ const router = Router();
 router.get("/", employeeController.getEmployees);
 router.get("/:id", employeeController.getEmployeeByID);
 router.put("/:id", employeeController.updateEmployeeDetails);
+router.delete("/:id", employeeController.deleteEmployee);
 
 module.exports = router;
