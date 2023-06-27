@@ -49,6 +49,8 @@ RETURNING *`;
 
 // LEAVE
 const getLeaveApplications = "SELECT * FROM leave";
+const getLeaveApplicationsByDepartment = `SELECT * FROM leave
+WHERE leave_id LIKE '%' || $1 || '%'`;
 
 module.exports = {
   // Department
@@ -69,4 +71,5 @@ module.exports = {
   updateEmployeeDetails,
   // Leave
   getLeaveApplications,
+  getLeaveApplicationsByDepartment,
 };
