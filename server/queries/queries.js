@@ -1,3 +1,27 @@
+// DEPARTMENT
+const createNewDepartment = `INSERT INTO department (department_id, department_name)
+VALUES ($1, $2)
+RETURNING *`;
+const deleteDepartment = `DELETE FROM department
+WHERE department_id = $1
+RETURNING *`;
+const deleteEmployeeInDepartment = `DELETE FROM employee
+WHERE department_id = $1`;
+const getDepartmentByID = "SELECT * FROM department WHERE department_id = $1";
+const getDepartmentByName =
+  "SELECT * FROM department WHERE department_name = $1";
+const getDepartments = "SELECT * FROM department";
+const updateDepartment = `UPDATE department
+SET department_id = $1,
+    department_name = $2
+WHERE department_id = $3
+RETURNING *`;
+const updateEmployeeDepartment = `UPDATE employee
+SET department_id = CASE
+    WHEN department_id = $2 THEN $1
+    ELSE employee.department_id
+    END`;
+
 // EMPLOYEE
 const deleteEmployee = `DELETE FROM employee
 WHERE employee_id = $1
@@ -23,38 +47,11 @@ SET department_id = $1,
 WHERE employee_id = $12
 RETURNING *`;
 
-// DEPARTMENT
-const createNewDepartment = `INSERT INTO department (department_id, department_name)
-VALUES ($1, $2)
-RETURNING *`;
-const deleteDepartment = `DELETE FROM department
-WHERE department_id = $1
-RETURNING *`;
-const deleteEmployeeInDepartment = `DELETE FROM employee
-WHERE department_id = $1`;
-const getDepartmentByID = "SELECT * FROM department WHERE department_id = $1";
-const getDepartmentByName =
-  "SELECT * FROM department WHERE department_name = $1";
-const getDepartments = "SELECT * FROM department";
-const updateDepartment = `UPDATE department
-SET department_id = $1,
-    department_name = $2
-WHERE department_id = $3
-RETURNING *`;
-const updateEmployeeDepartment = `UPDATE employee
-SET department_id = CASE
-    WHEN department_id = $2 THEN $1
-    ELSE employee.department_id
-    END`;
+// LEAVE
+const getLeaveApplications = "SELECT * FROM leave";
 
 module.exports = {
-  deleteEmployee,
-  getEmployees,
-  getEmployeeByEmail,
-  getEmployeeByID,
-  registerNewEmployee,
-  updateEmployeeDetails,
-
+  // Department
   createNewDepartment,
   deleteDepartment,
   deleteEmployeeInDepartment,
@@ -63,4 +60,13 @@ module.exports = {
   getDepartments,
   updateDepartment,
   updateEmployeeDepartment,
+  // Employee
+  deleteEmployee,
+  getEmployees,
+  getEmployeeByEmail,
+  getEmployeeByID,
+  registerNewEmployee,
+  updateEmployeeDetails,
+  // Leave
+  getLeaveApplications,
 };
