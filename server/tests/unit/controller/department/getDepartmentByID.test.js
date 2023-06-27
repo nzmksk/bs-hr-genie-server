@@ -1,8 +1,8 @@
-const pool = require("../../../app_config/db.js");
-const queries = require("../../../queries/queries.js");
+const pool = require("../../../../app_config/db.js");
+const queries = require("../../../../queries/queries.js");
 const {
   getDepartmentByID,
-} = require("../../../controller/DepartmentController.js");
+} = require("../../../../controller/DepartmentController.js");
 
 // Mock pool connection
 jest.mock("../../../app_config/db.js");
