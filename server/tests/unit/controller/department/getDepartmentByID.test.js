@@ -5,10 +5,10 @@ const {
 } = require("../../../../controller/DepartmentController.js");
 
 // Mock pool connection
-jest.mock("../../../app_config/db.js");
+jest.mock("../../../../app_config/db.js");
 
 describe("getDepartmentByID", () => {
-  const mockRequest = { params: { id: "abc" } };
+  const mockRequest = { params: { id: "ABC" } };
   const mockResponse = {
     status: jest.fn().mockReturnThis(),
     json: jest.fn(),
@@ -36,9 +36,11 @@ describe("getDepartmentByID", () => {
     expect(mockResponse.json).toHaveBeenCalledWith({ data: mockData[0] });
   });
 
-  test("Should return 'No data available.' message if data is not available", () => {
+  test("Should return error 404 if data is not available", () => {
+    const mockData = [];
+
     pool.query.mockImplementationOnce((query, params, callback) => {
-      callback(null, { rows: [] });
+      callback(null, { rows: mockData });
     });
 
     getDepartmentByID(mockRequest, mockResponse);
@@ -48,8 +50,9 @@ describe("getDepartmentByID", () => {
       expect.any(Array),
       expect.any(Function)
     );
-    expect(mockResponse.status).toHaveBeenCalledWith(200);
+    expect(mockResponse.status).toHaveBeenCalledWith(404);
     expect(mockResponse.json).toHaveBeenCalledWith({
+      data: mockData,
       message: "No data available.",
     });
   });
@@ -72,5 +75,35 @@ describe("getDepartmentByID", () => {
     expect(mockResponse.json).toHaveBeenCalledWith({
       message: "Internal server error.",
     });
+  });
+});
+
+describe("getDepartmentByID - Parameter validation", () => {
+  const mockResponse = {
+    status: jest.fn().mockReturnThis(),
+    json: jest.fn(),
+  };
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("ID parameter should be case-insensitive", () => {
+    const mockRequest = { params: { id: "abc" } };
+    const mockData = [{ id: "ABC", name: "Department 1" }];
+
+    pool.query.mockImplementationOnce((query, params, callback) => {
+      callback(null, { rows: mockData });
+    });
+
+    getDepartmentByID(mockRequest, mockResponse);
+
+    expect(pool.query).toHaveBeenCalledWith(
+      queries.getDepartmentByID,
+      expect.any(Array),
+      expect.any(Function)
+    );
+    expect(mockResponse.status).toHaveBeenCalledWith(200);
+    expect(mockResponse.json).toHaveBeenCalledWith({ data: mockData[0] });
   });
 });

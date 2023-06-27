@@ -1,47 +1,6 @@
 const pool = require("../app_config/db.js");
 const queries = require("../queries/queries.js");
 
-const getDepartments = (request, response) => {
-  pool.query(queries.getDepartments, (error, results) => {
-    if (error) {
-      console.error(error);
-      return response.status(500).json({ message: "Internal server error." });
-    }
-    // If data is not available
-    else if (results.rows.length === 0) {
-      return response.status(200).json({ message: "No data available." });
-    }
-    // If data is available
-    else {
-      let departments = results.rows;
-      return response.status(200).json({ data: departments });
-    }
-  });
-};
-
-const getDepartmentByID = (request, response) => {
-  const departmentID = request.params.id;
-  pool.query(
-    queries.getDepartmentByID,
-    [departmentID.toUpperCase()],
-    (error, results) => {
-      if (error) {
-        console.error(error);
-        return response.status(500).json({ message: "Internal server error." });
-      } 
-      // If data is not available
-      else if (results.rows.length === 0) {
-        return response.status(200).json({ message: "No data available." });
-      }
-      // If data is available
-      else {
-        let department = results.rows[0];
-        return response.status(200).json({ data: department });
-      }
-    }
-  );
-};
-
 const createNewDepartment = (request, response) => {
   const { department_id, department_name } = request.body;
   if (department_id.length < 2) {
@@ -114,6 +73,47 @@ const createNewDepartment = (request, response) => {
       }
     );
   }
+};
+
+const getDepartments = (request, response) => {
+  pool.query(queries.getDepartments, (error, results) => {
+    if (error) {
+      console.error(error);
+      return response.status(500).json({ message: "Internal server error." });
+    }
+    // If data is available
+    else if (results.rows.length > 0) {
+      const departments = results.rows;
+      return response.status(200).json({ data: departments });
+    }
+    // If data is not available
+    else {
+      return response
+        .status(404)
+        .json({ data: [], message: "No data available." });
+    }
+  });
+};
+
+const getDepartmentByID = (request, response) => {
+  const departmentID = request.params.id.toUpperCase();
+  pool.query(queries.getDepartmentByID, [departmentID], (error, results) => {
+    if (error) {
+      console.error(error);
+      return response.status(500).json({ message: "Internal server error." });
+    }
+    // If data is available
+    else if (results.rows.length > 0) {
+      const department = results.rows[0];
+      return response.status(200).json({ data: department });
+    }
+    // If data is not available
+    else {
+      return response
+        .status(404)
+        .json({ data: [], message: "No data available." });
+    }
+  });
 };
 
 const updateDepartment = (request, response) => {

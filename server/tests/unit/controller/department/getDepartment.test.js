@@ -1,11 +1,14 @@
 const pool = require("../../../../app_config/db.js");
 const queries = require("../../../../queries/queries.js");
-const { getDepartments } = require("../../../../controller/DepartmentController.js");
+const {
+  getDepartments,
+} = require(".../../../../controller/DepartmentController.js");
 
 // Mock pool connection
 jest.mock("../../../../app_config/db.js");
 
 describe("getDepartments", () => {
+  const mockRequest = {};
   const mockResponse = {
     status: jest.fn().mockReturnThis(),
     json: jest.fn(),
@@ -25,7 +28,7 @@ describe("getDepartments", () => {
       callback(null, { rows: mockData });
     });
 
-    getDepartments({}, mockResponse);
+    getDepartments(mockRequest, mockResponse);
 
     expect(pool.query).toHaveBeenCalledWith(
       queries.getDepartments,
@@ -35,19 +38,22 @@ describe("getDepartments", () => {
     expect(mockResponse.json).toHaveBeenCalledWith({ data: mockData });
   });
 
-  test("Should return 'No data available.' message if data is not available", () => {
+  test("Should return error 404 if data is not available", () => {
+    const mockData = [];
+
     pool.query.mockImplementationOnce((query, callback) => {
-      callback(null, { rows: [] });
+      callback(null, { rows: mockData });
     });
 
-    getDepartments({}, mockResponse);
+    getDepartments(mockRequest, mockResponse);
 
     expect(pool.query).toHaveBeenCalledWith(
       queries.getDepartments,
       expect.any(Function)
     );
-    expect(mockResponse.status).toHaveBeenCalledWith(200);
+    expect(mockResponse.status).toHaveBeenCalledWith(404);
     expect(mockResponse.json).toHaveBeenCalledWith({
+      data: mockData,
       message: "No data available.",
     });
   });
@@ -59,7 +65,7 @@ describe("getDepartments", () => {
       callback(mockError);
     });
 
-    getDepartments({}, mockResponse);
+    getDepartments(mockRequest, mockResponse);
 
     expect(pool.query).toHaveBeenCalledWith(
       queries.getDepartments,

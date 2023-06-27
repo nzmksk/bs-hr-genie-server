@@ -1,7 +1,7 @@
 const express = require("express");
+const accountRoutes = require("./routes/AccountRouter.js");
 const departmentRoutes = require("./routes/DepartmentRouter.js");
 const employeeRoutes = require("./routes/EmployeeRouter.js");
-const accountRoutes = require("./routes/AccountRouter.js");
 const leaveRoutes = require("./routes/LeaveRouter.js");
 
 const app = express();
