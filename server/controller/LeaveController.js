@@ -39,4 +39,44 @@ const getLeaveApplicationsByDepartment = (request, response) => {
   );
 };
 
-module.exports = { getLeaveApplications, getLeaveApplicationsByDepartment };
+const applyLeave = (request, response) => {
+  const {
+    employee_id,
+    leave_type_id,
+    start_date,
+    end_date,
+    duration,
+    reason,
+    attachment,
+  } = request.body;
+  pool.query(
+    queries.applyLeave,
+    [
+      employee_id,
+      leave_type_id,
+      start_date,
+      end_date,
+      duration,
+      reason,
+      attachment,
+    ],
+    (error, results) => {
+      if (error) {
+        console.error(error);
+        return response.status(500).json({ message: "Internal server error." });
+      } else {
+        const leaveApplication = results.rows[0];
+        return response.status(201).json({
+          data: leaveApplication,
+          message: "Leave application successfully submitted.",
+        });
+      }
+    }
+  );
+};
+
+module.exports = {
+  applyLeave,
+  getLeaveApplications,
+  getLeaveApplicationsByDepartment,
+};

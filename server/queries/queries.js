@@ -48,6 +48,9 @@ WHERE employee_id = $12
 RETURNING *`;
 
 // LEAVE
+const applyLeave = `INSERT INTO leave (employee_id, leave_type_id, start_date, end_date, duration, reason, attachment)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING *`;
 const getLeaveApplications = "SELECT * FROM leave";
 const getLeaveApplicationsByDepartment = `SELECT * FROM leave
 WHERE leave_id LIKE '%' || $1 || '%'`;
@@ -70,6 +73,7 @@ module.exports = {
   registerNewEmployee,
   updateEmployeeDetails,
   // Leave
+  applyLeave,
   getLeaveApplications,
   getLeaveApplicationsByDepartment,
 };
