@@ -21,7 +21,7 @@ CREATE TABLE employee(
     last_name VARCHAR(50) NOT NULL,
     gender gender_type NOT NULL,
     email VARCHAR(50) NOT NULL,
-    hash_password VARCHAR(100) NOT NULL,
+    hash_password TEXT NOT NULL,
     phone VARCHAR(20),
     nric CHAR(12) NOT NULL,
     is_probation BOOLEAN,
@@ -29,6 +29,7 @@ CREATE TABLE employee(
     joined_date DATE,
     profile_image BYTEA,
     created_at DATE NOT NULL DEFAULT CURRENT_DATE,
+    refresh_token TEXT,
     UNIQUE (email)
 );
 
