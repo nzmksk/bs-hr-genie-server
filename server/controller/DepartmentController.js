@@ -1,12 +1,12 @@
 const pool = require("../app_config/db.js");
 const queries = require("../queries/queries.js");
 
-const createNewDepartment = (request, response) => {
+const createDepartment = (request, response) => {
   const { department_id, department_name } = request.body;
-  if (department_id.length < 2) {
+  if (department_id.length < 2 || department_id.length > 3) {
     return response
       .status(400)
-      .json({ message: "Department ID should be at least 2 characters." });
+      .json({ message: "Department ID must be 2-3 characters." });
   } else {
     pool.query(
       queries.getDepartmentByID,
@@ -20,23 +20,20 @@ const createNewDepartment = (request, response) => {
         }
         // If department already exists
         else if (results.rows.length > 0) {
+          const department = results.rows[0];
           return response
             .status(409)
-            .json({ message: "Department already exists!" });
+            .json({ data: department, message: "Department already exists." });
         }
         // If department does not exist
         else {
           pool.query(
-            queries.createNewDepartment,
+            queries.createDepartment,
             [department_id.toUpperCase(), department_name],
             (error, results) => {
               if (error) {
                 console.error(error);
-                if (error.code === "22001") {
-                  return response.status(400).json({
-                    message: "Department ID should be 3 characters at maximum.",
-                  });
-                } else if (error.code === "23505") {
+                if (error.code === "23505") {
                   pool.query(
                     queries.getDepartmentByName,
                     [department_name],
@@ -50,7 +47,7 @@ const createNewDepartment = (request, response) => {
                         let department = results.rows[0];
                         return response.status(409).json({
                           data: department,
-                          message: "Department name already exists!",
+                          message: "Department already exists.",
                         });
                       }
                     }
@@ -64,7 +61,7 @@ const createNewDepartment = (request, response) => {
                 let department = results.rows[0];
                 return response.status(201).json({
                   data: department,
-                  message: `Department ${department.department_name} has been successfully created.`,
+                  message: "Department has been successfully created.",
                 });
               }
             }
@@ -175,7 +172,7 @@ const deleteDepartment = (request, response) => {
 };
 
 module.exports = {
-  createNewDepartment,
+  createDepartment,
   getDepartments,
   getDepartmentByID,
   updateDepartment,

@@ -72,7 +72,7 @@ CREATE TABLE leave_quota(
 );
 
 CREATE TYPE duration_type AS ENUM ('full-day', 'first-half', 'second-half');
-CREATE TYPE status_type AS ENUM ('pending', 'approved', 'rejected');
+CREATE TYPE status_type AS ENUM ('pending', 'approved', 'rejected', 'cancelled');
 CREATE SEQUENCE leave_id_seq;
 CREATE TABLE leave(
     leave_id VARCHAR(10) PRIMARY KEY,

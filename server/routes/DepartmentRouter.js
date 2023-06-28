@@ -3,7 +3,7 @@ const departmentController = require("../controller/DepartmentController.js");
 
 const router = Router();
 
-router.post("/", departmentController.createNewDepartment);
+router.post("/", departmentController.createDepartment);
 router.get("/", departmentController.getDepartments);
 router.get("/:id", departmentController.getDepartmentByID);
 router.put("/:id", departmentController.updateDepartment);

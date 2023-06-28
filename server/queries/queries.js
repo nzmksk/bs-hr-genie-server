@@ -1,5 +1,5 @@
 // DEPARTMENT
-const createNewDepartment = `INSERT INTO department (department_id, department_name)
+const createDepartment = `INSERT INTO department (department_id, department_name)
 VALUES ($1, $2)
 RETURNING *`;
 const deleteDepartment = `DELETE FROM department
@@ -73,7 +73,7 @@ WHERE leave_id LIKE '%' || $1 || '%'`;
 
 module.exports = {
   // Department
-  createNewDepartment,
+  createDepartment,
   deleteDepartment,
   deleteEmployeeInDepartment,
   getDepartmentByID,

@@ -76,17 +76,6 @@ describe("getDepartmentByID", () => {
       message: "Internal server error.",
     });
   });
-});
-
-describe("getDepartmentByID - Parameter validation", () => {
-  const mockResponse = {
-    status: jest.fn().mockReturnThis(),
-    json: jest.fn(),
-  };
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
 
   test("ID parameter should be case-insensitive", () => {
     const mockRequest = { params: { id: "abc" } };
