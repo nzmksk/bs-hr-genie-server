@@ -107,5 +107,5 @@ CREATE TRIGGER set_leave_id_trigger
 INSERT INTO department (department_id, department_name)
 VALUES ('HR', 'Human Resources'), ('BE', 'Backend Development');
 
-INSERT INTO employee (department_id, employee_role, first_name, last_name, gender, email, hash_password, nric)
+INSERT INTO employee (department_id, employee_role, first_name, last_name, gender, email, hashed_password, nric)
 VALUES ('BE', 'employee', 'Hafiz', 'Zabba', 'male', 'hafiz@besquare.com.my', '123testing', '123456789012');

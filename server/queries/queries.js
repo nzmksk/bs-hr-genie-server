@@ -29,7 +29,7 @@ RETURNING *`;
 const getEmployees = "SELECT * FROM employee";
 const getEmployeeByEmail = "SELECT * FROM employee WHERE email = $1";
 const getEmployeeByID = "SELECT * FROM employee WHERE employee_id = $1";
-const registerNewEmployee = `INSERT INTO employee (department_id, employee_role, first_name, last_name, gender, email, nric, hash_password)
+const registerNewEmployee = `INSERT INTO employee (department_id, employee_role, first_name, last_name, gender, email, nric, hashed_password)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING *`;
 const updateEmployeeDetails = `UPDATE employee
@@ -46,6 +46,10 @@ SET department_id = $1,
     joined_date = $11
 WHERE employee_id = $12
 RETURNING *`;
+const updateEmployeeRefreshToken = `UPDATE employee
+SET refresh_token = $1
+WHERE email = $2
+RETURNING email, refresh_token`;
 
 // LEAVE
 const applyLeave = `INSERT INTO leave (employee_id, leave_type_id, start_date, end_date, duration, reason, attachment)
@@ -88,6 +92,7 @@ module.exports = {
   getEmployeeByID,
   registerNewEmployee,
   updateEmployeeDetails,
+  updateEmployeeRefreshToken,
   // Leave
   applyLeave,
   approveRejectLeave,
