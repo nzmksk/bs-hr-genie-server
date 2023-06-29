@@ -1,5 +1,5 @@
 const Router = require("express");
-const employeeController = require("../controller/EmployeeController.js");
+const employeeController = require("../controllers/EmployeeController.js");
 
 const router = Router();
 

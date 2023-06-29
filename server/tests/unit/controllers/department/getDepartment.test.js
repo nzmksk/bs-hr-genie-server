@@ -1,11 +1,11 @@
-const pool = require("../../../../app_config/db.js");
-const queries = require("../../../../queries/queries.js");
+const pool = require("../../../../config/db.js");
+const queries = require("../../../../utils/queries/queries.js");
 const {
   getDepartments,
-} = require(".../../../../controller/DepartmentController.js");
+} = require(".../../../../controllers/DepartmentController.js");
 
 // Mock pool connection
-jest.mock("../../../../app_config/db.js");
+jest.mock("../../../../config/db.js");
 
 describe("getDepartments", () => {
   const mockRequest = {};

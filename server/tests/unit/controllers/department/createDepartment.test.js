@@ -1,11 +1,11 @@
-const DatabaseError = require("../../../../errors/DatabaseError.js");
-const pool = require("../../../../app_config/db.js");
-const queries = require("../../../../queries/queries.js");
+const DatabaseError = require("../../../../utils/errors/DatabaseError.js");
+const pool = require("../../../../config/db.js");
+const queries = require("../../../../utils/queries/queries.js");
 const {
   createDepartment,
-} = require("../../../../controller/DepartmentController.js");
+} = require("../../../../controllers/DepartmentController");
 
-jest.mock("../../../../app_config/db.js");
+jest.mock("../../../../config/db.js");
 
 describe("createDepartment", () => {
   const mockRequest = {

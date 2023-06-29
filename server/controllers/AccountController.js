@@ -1,8 +1,8 @@
 const bcrypt = require("bcrypt");
-const pool = require("../app_config/db.js");
-const EmployeeModel = require("../model/EmployeeModel.js");
-const queries = require("../queries/queries.js");
-const tokens = require("../middleware/authentication/tokens.js");
+const pool = require("../config/db.js");
+const EmployeeModel = require("../models/EmployeeModel.js");
+const queries = require("../utils/queries/queries.js");
+const tokens = require("../middlewares/authentication/tokens.js");
 
 const registerNewEmployee = async (request, response) => {
   try {

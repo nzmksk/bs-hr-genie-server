@@ -1,5 +1,5 @@
-const pool = require("../app_config/db.js");
-const queries = require("../queries/queries.js");
+const pool = require("../config/db.js");
+const queries = require("../utils/queries/queries.js");
 
 const getLeaveApplications = (request, response) => {
   pool.query(queries.getLeaveApplications, (error, results) => {
