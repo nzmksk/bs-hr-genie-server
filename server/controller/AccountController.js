@@ -1,79 +1,71 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const pool = require("../app_config/db.js");
+const Employee = require("../model/EmployeeModel.js");
 const queries = require("../queries/queries.js");
 
-const saltRounds = 10;
 const secretKey = process.env.JWT_SECRET;
 
 const registerNewEmployee = async (request, response) => {
-  const {
-    department_id,
-    employee_role,
-    first_name,
-    last_name,
-    gender,
-    email,
-    nric,
-  } = request.body;
+  try {
+    const employee = new Employee(request.body);
+    const emailExistsQuery = {
+      text: queries.getEmployeeByEmail,
+      values: [employee.cleanEmail],
+    };
+    const emailExistsResult = await pool.query(emailExistsQuery);
 
-  const hashedPassword = await bcrypt.hash(nric, saltRounds);
-  pool.query(queries.getEmployeeByEmail, [email], (error, results) => {
-    if (error) {
-      console.error(error);
-      return response.status(500).json({ message: "Internal server error." });
-    }
-    // If email exists in database
-    else if (results.rows.length > 0) {
+    if (emailExistsResult.rows.length > 0) {
       return response
         .status(409)
         .json({ message: "Email is already registered." });
-    }
-    // If email does not exist in database
-    else {
-      pool.query(
-        queries.registerNewEmployee,
-        [
-          department_id,
-          employee_role,
-          first_name,
-          last_name,
-          gender,
-          email,
-          nric,
-          hashedPassword,
+    } else {
+      const registerEmployeeQuery = {
+        text: queries.registerNewEmployee,
+        values: [
+          employee.departmentId,
+          employee.employeeRole,
+          employee.firstName,
+          employee.lastName,
+          employee.gender,
+          employee.email,
+          employee.nric,
+          await employee.encryptPassword(),
         ],
-        (error, results) => {
-          if (error) {
-            console.error(error);
-            // If non-null columns inserted with null values
-            if (error.code === "23502") {
-              return response
-                .status(400)
-                .json({ message: "Null value error." });
-            }
-            // If data insertion violates foreign key constraint
-            else if (
-              error.code === "23503" &&
-              error.constraint.includes("fkey")
-            ) {
-              return response
-                .status(400)
-                .json({ message: "Invalid department ID." });
-            } else {
-              return response
-                .status(500)
-                .json({ message: "Internal server error." });
-            }
-          } else {
-            return response.status(201).json({
-              message: "Account successfully registered.",
-            });
-          }
-        }
-      );
+      };
+      await pool.query(registerEmployeeQuery);
+
+      return response
+        .status(201)
+        .json({ message: "Account successfully registered." });
     }
-  });
+  } catch (error) {
+    console.error(error);
+
+    let statusCode;
+    let message;
+
+    switch (error.code) {
+      case "23502":
+        statusCode = 400;
+        message = "Null value error.";
+        break;
+      case "23503":
+        statusCode = 400;
+        message = "Invalid department ID.";
+        break;
+      case "23505":
+        statusCode = 400;
+        message = "Email is already registered.";
+        break;
+      default:
+        statusCode = 500;
+        message = `${error.message}`;
+        break;
+    }
+
+    return response.status(statusCode).json({ message });
+  }
 };
 
 const loginAccount = async (request, response) => {
