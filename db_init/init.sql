@@ -21,7 +21,7 @@ CREATE TABLE employee(
     last_name VARCHAR(50) NOT NULL,
     gender gender_type NOT NULL,
     email VARCHAR(50) NOT NULL,
-    hash_password TEXT NOT NULL,
+    hashed_password TEXT NOT NULL,
     phone VARCHAR(20),
     nric CHAR(12) NOT NULL,
     is_probation BOOLEAN,
