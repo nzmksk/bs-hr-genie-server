@@ -12,7 +12,6 @@ class EmployeeModel {
     hashed_password,
     phone,
     nric,
-    is_probation,
     is_married,
     joined_date,
     profile_image,
@@ -29,7 +28,6 @@ class EmployeeModel {
     this.hashedPassword = hashed_password;
     this.phone = phone;
     this.nric = nric;
-    this.isProbation = is_probation;
     this.isMarried = is_married;
     this.joinedDate = joined_date;
     this.profileImage = profile_image;

@@ -1,6 +1,10 @@
 const pool = require("../config/db.js");
 const queries = require("../utils/queries/queries.js");
 const { EmployeeModel } = require("../models/models.js");
+const {
+  checkIfEmailExists,
+  checkIfNricExists,
+} = require("../utils/validations/validations.js");
 
 const logoutAccount = async (request, response) => {
   response.clearCookie("hr-genie", { path: "/refresh_token" });
@@ -10,60 +14,49 @@ const logoutAccount = async (request, response) => {
 const registerNewEmployee = async (request, response) => {
   try {
     const employee = new EmployeeModel(request.body);
-    const emailExistsQuery = {
-      text: queries.getEmployeeByEmail,
-      values: [employee.cleanEmail],
+
+    // Check if email exists
+    const [emailStatusCode, emailErrorMessage] = await checkIfEmailExists(
+      employee.email
+    );
+    if (emailStatusCode && emailErrorMessage) {
+      return response
+        .status(emailStatusCode)
+        .json({ error: emailErrorMessage });
+    }
+
+    // Check if NRIC exists
+    const [nricStatusCode, nricErrorMessage] = await checkIfNricExists(
+      employee.nric
+    );
+    if (nricStatusCode && nricErrorMessage) {
+      return response.status(nricStatusCode).json({ error: nricErrorMessage });
+    }
+
+    // Register new account
+    const registerEmployeeQuery = {
+      text: queries.registerNewEmployee,
+      values: [
+        employee.departmentId,
+        employee.employeeRole,
+        employee.firstName,
+        employee.lastName,
+        employee.gender,
+        employee.email,
+        employee.phone,
+        employee.nric,
+        employee.isMarried,
+        employee.joinedDate,
+        await employee.encryptPassword(),
+      ],
     };
-    const emailExistsResult = await pool.query(emailExistsQuery);
+    await pool.query(registerEmployeeQuery);
 
-    if (emailExistsResult.rows.length > 0) {
-      return response
-        .status(409)
-        .json({ message: "Email is already registered." });
-    } else {
-      const registerEmployeeQuery = {
-        text: queries.registerNewEmployee,
-        values: [
-          employee.departmentId,
-          employee.employeeRole,
-          employee.firstName,
-          employee.lastName,
-          employee.gender,
-          employee.email,
-          employee.nric,
-          await employee.encryptPassword(),
-        ],
-      };
-      await pool.query(registerEmployeeQuery);
-
-      return response
-        .status(201)
-        .json({ message: "Account successfully registered." });
-    }
+    return response
+      .status(201)
+      .json({ message: "Account successfully registered." });
   } catch (error) {
-    let statusCode;
-    let message;
-
-    switch (error.code) {
-      case "23502":
-        statusCode = 400;
-        message = "Null value error.";
-        break;
-      case "23503":
-        statusCode = 400;
-        message = "Invalid department ID.";
-        break;
-      case "23505":
-        statusCode = 400;
-        message = "Email is already registered.";
-        break;
-      default:
-        statusCode = 500;
-        message = `${error.message}`;
-        break;
-    }
-
-    return response.status(statusCode).json({ message });
+    return response.status(500).json({ error: `${error.message}` });
   }
 };
 

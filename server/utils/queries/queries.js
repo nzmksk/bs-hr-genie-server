@@ -29,9 +29,21 @@ RETURNING *`;
 const getEmployees = "SELECT * FROM employee";
 const getEmployeeByEmail = "SELECT * FROM employee WHERE email = $1";
 const getEmployeeByID = "SELECT * FROM employee WHERE employee_id = $1";
-const registerNewEmployee = `INSERT INTO employee (department_id, employee_role, first_name, last_name, gender, email, nric, hashed_password)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING *`;
+const getEmployeeByNric = "SELECT * FROM employee WHERE nric = $1";
+const registerNewEmployee = `INSERT INTO employee (
+    department_id,
+    employee_role,
+    first_name,
+    last_name,
+    gender,
+    email,
+    phone,
+    nric,
+    is_married,
+    joined_date,
+    hashed_password
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`;
 const updateEmployeeDetails = `UPDATE employee
 SET department_id = $1,
     employee_role = $2,
@@ -90,6 +102,7 @@ module.exports = {
   getEmployees,
   getEmployeeByEmail,
   getEmployeeByID,
+  getEmployeeByNric,
   registerNewEmployee,
   updateEmployeeDetails,
   updateEmployeeRefreshToken,

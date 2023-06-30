@@ -24,13 +24,12 @@ CREATE TABLE employee(
     hashed_password TEXT NOT NULL,
     phone VARCHAR(20),
     nric CHAR(12) NOT NULL,
-    is_probation BOOLEAN,
     is_married BOOLEAN,
     joined_date DATE,
     profile_image BYTEA,
     created_at DATE NOT NULL DEFAULT CURRENT_DATE,
     refresh_token TEXT,
-    UNIQUE (email)
+    UNIQUE (email, nric)
 );
 
 -- Generate employee's ID based on employee's department ID
