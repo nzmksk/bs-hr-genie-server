@@ -1,8 +1,8 @@
 const bcrypt = require("bcrypt");
 const pool = require("../config/db.js");
-const EmployeeModel = require("../models/EmployeeModel.js");
+const { EmployeeModel } = require("../models/models.js");
 const queries = require("../utils/queries/queries.js");
-const tokens = require("../middlewares/authentication/tokens.js");
+const tokens = require("../utils/tokens/tokens.js");
 
 const registerNewEmployee = async (request, response) => {
   try {
@@ -106,13 +106,7 @@ const loginAccount = async (request, response) => {
   }
 };
 
-const logoutAccount = async (request, response) => {
-  response.clearCookie("hr-genie", { path: "/refresh_token" });
-  return response.status(200).json({ message: "Logout successful." });
-};
-
 module.exports = {
   registerNewEmployee,
   loginAccount,
-  logoutAccount,
 };

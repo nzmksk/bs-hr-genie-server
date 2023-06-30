@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 
-class Employee {
+class EmployeeModel {
   constructor({
     department_id,
     employee_id,
@@ -56,4 +56,4 @@ class Employee {
   };
 }
 
-module.exports = Employee;
+module.exports = EmployeeModel;

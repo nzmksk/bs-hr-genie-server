@@ -1,9 +1,7 @@
 const DatabaseError = require("../../../../utils/errors/DatabaseError.js");
 const pool = require("../../../../config/db.js");
 const queries = require("../../../../utils/queries/queries.js");
-const {
-  createDepartment,
-} = require("../../../../controllers/DepartmentController");
+const { createDepartment } = require("../../../../controllers/controllers.js");
 
 jest.mock("../../../../config/db.js");
 
