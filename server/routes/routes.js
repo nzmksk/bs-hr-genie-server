@@ -1,8 +1,8 @@
-const accountRoutes = require("./routes/AccountRouter.js");
-const authRoutes = require("./routes/AuthRouter.js");
-const departmentRoutes = require("./routes/DepartmentRouter.js");
-const employeeRoutes = require("./routes/EmployeeRouter.js");
-const leaveRoutes = require("./routes/LeaveRouter.js");
+const accountRoutes = require("./AccountRouter.js");
+const authRoutes = require("./AuthRouter.js");
+const departmentRoutes = require("./DepartmentRouter.js");
+const employeeRoutes = require("./EmployeeRouter.js");
+const leaveRoutes = require("./LeaveRouter.js");
 
 module.exports = {
   accountRoutes,

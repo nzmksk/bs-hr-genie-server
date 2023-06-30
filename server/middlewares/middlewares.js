@@ -1,3 +1,3 @@
-const authMiddleware = require("./middlewares/AuthMiddleware.js");
+const authMiddleware = require("./AuthMiddleware.js");
 
 module.exports = { authMiddleware };
