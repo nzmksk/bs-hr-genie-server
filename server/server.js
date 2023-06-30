@@ -30,5 +30,3 @@ app.use("/leaves", authMiddleware, routes.leaveRoutes);
 app.listen(port, () => {
   console.log(`Server is listening on http://localhost:${port}`);
 });
-
-module.exports = app;
