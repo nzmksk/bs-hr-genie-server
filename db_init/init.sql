@@ -11,7 +11,7 @@ CREATE TABLE department(
 );
 
 CREATE TYPE gender_type AS ENUM ('male', 'female');
-CREATE TYPE role_type AS ENUM ('employee', 'manager', 'admin', 'resigned');
+CREATE TYPE role_type AS ENUM ('employee', 'manager', 'admin', 'resigned', 'superadmin');
 CREATE SEQUENCE employee_id_seq;
 CREATE TABLE employee(
     department_id VARCHAR(3) NOT NULL REFERENCES department(department_id) ON DELETE CASCADE,
@@ -105,7 +105,7 @@ CREATE TRIGGER set_leave_id_trigger
     EXECUTE FUNCTION set_leave_id();
 
 INSERT INTO department (department_id, department_name)
-VALUES ('HR', 'Human Resources'), ('BE', 'Backend Development');
+VALUES ('HR', 'Human Resources');
 
 INSERT INTO employee (department_id, employee_role, first_name, last_name, gender, email, hashed_password, nric)
-VALUES ('BE', 'employee', 'Hafiz', 'Zabba', 'male', 'hafiz@besquare.com.my', '123testing', '123456789012');
+VALUES ('HR', 'superadmin', 'Super', 'Admin', 'male', 'superadmin', '$2b$10$usOESTL8LtiFvynFOJOEuOPvdshPTSu98nLoZ/ERhypB8JrYPHL4C', '123456789012');
