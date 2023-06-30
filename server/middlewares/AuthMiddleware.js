@@ -12,10 +12,11 @@ const authMiddleware = (request, response, next) => {
   try {
     const token = authorization.split(" ")[1];
     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    const { email } = decodedToken;
+    const { employeeId, employeeRole } = decodedToken;
 
-    // Attach the email to the request object for later use if needed
-    request.email = email;
+    // Attach the payload to the request object for later use if needed
+    request.employee_id = employeeId;
+    request.employee_role = employeeRole;
 
     next();
   } catch (error) {

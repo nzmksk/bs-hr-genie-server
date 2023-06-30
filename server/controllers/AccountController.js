@@ -21,8 +21,14 @@ const loginAccount = async (request, response) => {
       );
 
       if (isValidPassword) {
-        const accessToken = tokens.createAccessToken(employee.email);
-        const refreshToken = tokens.createRefreshToken(employee.email);
+        const accessToken = tokens.createAccessToken(
+          employee.employeeId,
+          employee.employeeRole
+        );
+        const refreshToken = tokens.createRefreshToken(
+          employee.employeeId,
+          employee.employeeRole
+        );
         const updateEmployeeRefreshTokenQuery = {
           text: queries.updateEmployeeRefreshToken,
           values: [refreshToken, email],

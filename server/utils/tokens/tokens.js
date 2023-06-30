@@ -1,15 +1,23 @@
 const jwt = require("jsonwebtoken");
 
-const createAccessToken = (email) => {
-  return jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: "15m",
-  });
+const createAccessToken = (employeeId, employeeRole) => {
+  return jwt.sign(
+    { employeeId, employeeRole },
+    process.env.ACCESS_TOKEN_SECRET,
+    {
+      expiresIn: "15m",
+    }
+  );
 };
 
-const createRefreshToken = (email) => {
-  return jwt.sign({ email }, process.env.REFRESH_TOKEN_SECRET, {
-    expiresIn: "7d",
-  });
+const createRefreshToken = (employeeId, employeeRole) => {
+  return jwt.sign(
+    { employeeId, employeeRole },
+    process.env.REFRESH_TOKEN_SECRET,
+    {
+      expiresIn: "7d",
+    }
+  );
 };
 
 const sendRefreshToken = (response, token) => {
