@@ -1,10 +1,11 @@
+// Libraries
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const express = require("express");
-
-const { authMiddleware } = require("./middlewares/middlewares.js");
+// Local files
 const routes = require("./routes/routes.js");
-
+const { authMiddleware } = require("./middlewares/middlewares.js");
+// App
 const app = express();
 const port = process.env.HTTP_PORT ?? 3000;
 

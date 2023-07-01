@@ -108,3 +108,6 @@ VALUES ('HR', 'Human Resources');
 
 INSERT INTO employee (department_id, employee_role, first_name, last_name, gender, email, hashed_password, nric)
 VALUES ('HR', 'superadmin', 'Super', 'Admin', 'male', 'superadmin', '$2b$10$usOESTL8LtiFvynFOJOEuOPvdshPTSu98nLoZ/ERhypB8JrYPHL4C', '123456789012');
+
+INSERT INTO leave_category (leave_type_name)
+VALUES ('annual', 'medical', 'parental', 'emergency', 'unpaid');

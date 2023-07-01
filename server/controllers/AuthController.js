@@ -1,6 +1,7 @@
 const pool = require("../config/db.js");
 const queries = require("../utils/queries/queries.js");
 const { EmployeeModel } = require("../models/models.js");
+const { makeTransaction } = require("../utils/transactions.js/transactions.js");
 const {
   checkIfEmailExists,
   checkIfNricExists,
@@ -50,11 +51,16 @@ const registerNewEmployee = async (request, response) => {
         await employee.encryptPassword(),
       ],
     };
-    await pool.query(registerEmployeeQuery);
+
+    const { statusCode, successMessage, errorMessage } = await makeTransaction(
+      [registerEmployeeQuery],
+      201,
+      "Account successfully registered."
+    );
 
     return response
-      .status(201)
-      .json({ message: "Account successfully registered." });
+      .status(statusCode)
+      .json({ message: successMessage, error: errorMessage });
   } catch (error) {
     return response.status(500).json({ error: `${error.message}` });
   }
