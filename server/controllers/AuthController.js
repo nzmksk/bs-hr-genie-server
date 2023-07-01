@@ -1,6 +1,12 @@
-const pool = require("../config/db.js");
 const queries = require("../utils/queries/queries.js");
-const { EmployeeModel } = require("../models/models.js");
+const {
+  AnnualLeaveQuotaModel,
+  EmergencyLeaveQuotaModel,
+  EmployeeModel,
+  MedicalLeaveQuotaModel,
+  ParentalLeaveQuotaModel,
+  UnpaidLeaveQuotaModel,
+} = require("../models/models.js");
 const { makeTransaction } = require("../utils/transactions.js/transactions.js");
 const {
   checkIfEmailExists,
@@ -15,6 +21,11 @@ const logoutAccount = async (request, response) => {
 const registerNewEmployee = async (request, response) => {
   try {
     const employee = new EmployeeModel(request.body);
+    const annualLeave = new AnnualLeaveQuotaModel(employee);
+    const medicalLeave = new MedicalLeaveQuotaModel(employee);
+    const parentalLeave = new ParentalLeaveQuotaModel(employee);
+    const emergencyLeave = new EmergencyLeaveQuotaModel(employee);
+    const unpaidLeave = new UnpaidLeaveQuotaModel(employee);
 
     // Check if email exists
     const [emailStatusCode, emailErrorMessage] = await checkIfEmailExists(
@@ -52,8 +63,58 @@ const registerNewEmployee = async (request, response) => {
       ],
     };
 
+    // Allocate leave quota
+    const allocateAnnualLeaveQuery = {
+      text: queries.allocateLeave,
+      values: [
+        annualLeave.employeeId,
+        annualLeave.leaveTypeId,
+        annualLeave.quota,
+      ],
+    };
+    const allocateMedicalLeaveQuery = {
+      text: queries.allocateLeave,
+      values: [
+        medicalLeave.employeeId,
+        medicalLeave.leaveTypeId,
+        medicalLeave.quota,
+      ],
+    };
+    const allocateParentalLeaveQuery = {
+      text: queries.allocateLeave,
+      values: [
+        parentalLeave.employeeId,
+        parentalLeave.leaveTypeId,
+        parentalLeave.quota,
+      ],
+    };
+    const allocateEmergencyLeaveQuery = {
+      text: queries.allocateLeave,
+      values: [
+        emergencyLeave.employeeId,
+        emergencyLeave.leaveTypeId,
+        emergencyLeave.quota,
+      ],
+    };
+    const allocateUnpaidLeaveQuery = {
+      text: queries.allocateLeave,
+      values: [
+        unpaidLeave.employeeId,
+        unpaidLeave.leaveTypeId,
+        unpaidLeave.quota,
+      ],
+    };
+
+    // Perform transaction
     const { statusCode, successMessage, errorMessage } = await makeTransaction(
-      [registerEmployeeQuery],
+      [
+        registerEmployeeQuery,
+        allocateAnnualLeaveQuery,
+        allocateMedicalLeaveQuery,
+        allocateParentalLeaveQuery,
+        allocateEmergencyLeaveQuery,
+        allocateUnpaidLeaveQuery,
+      ],
       201,
       "Account successfully registered."
     );

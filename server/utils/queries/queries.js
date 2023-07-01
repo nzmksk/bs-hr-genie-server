@@ -1,5 +1,8 @@
 // DEPARTMENT
-const createDepartment = `INSERT INTO department (department_id, department_name)
+const createDepartment = `INSERT INTO department (
+    department_id,
+    department_name
+)
 VALUES ($1, $2)
 RETURNING *`;
 const deleteDepartment = `DELETE FROM department
@@ -8,8 +11,8 @@ RETURNING *`;
 const deleteEmployeeInDepartment = `DELETE FROM employee
 WHERE department_id = $1`;
 const getDepartmentByID = "SELECT * FROM department WHERE department_id = $1";
-const getDepartmentByName =
-  "SELECT * FROM department WHERE department_name = $1";
+const getDepartmentByName = `SELECT * FROM department
+WHERE department_name = $1`;
 const getDepartments = "SELECT * FROM department";
 const updateDepartment = `UPDATE department
 SET department_id = $1,
@@ -64,7 +67,21 @@ WHERE email = $2
 RETURNING email, refresh_token`;
 
 // LEAVE
-const applyLeave = `INSERT INTO leave (employee_id, leave_type_id, start_date, end_date, duration, reason, attachment)
+const allocateLeave = `INSERT INTO leave_quota (
+    employee_id,
+    leave_type_id,
+    quota
+)
+VALUES ($1, $2, $3)`;
+const applyLeave = `INSERT INTO leave (
+    employee_id,
+    leave_type_id,
+    start_date,
+    end_date,
+    duration,
+    reason,
+    attachment
+)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *`;
 const approveRejectLeave = `UPDATE leave
@@ -97,6 +114,7 @@ module.exports = {
   getDepartments,
   updateDepartment,
   updateEmployeeDepartment,
+
   // Employee
   deleteEmployee,
   getEmployees,
@@ -106,7 +124,9 @@ module.exports = {
   registerNewEmployee,
   updateEmployeeDetails,
   updateEmployeeRefreshToken,
+
   // Leave
+  allocateLeave,
   applyLeave,
   approveRejectLeave,
   deleteLeaveApplication,
