@@ -7,12 +7,8 @@ const calculateLeaveQuota = (leaveType, role, tenure) => {
       switch (role) {
         case "manager":
           switch (tenure) {
-            // Tenure < 1 year
+            // Tenure < 2 years
             case 0:
-              // TODO: Prorate it
-              break;
-
-            // Tenure 1-2 years
             case 1:
               leaveQuota = 12;
               break;
@@ -34,12 +30,8 @@ const calculateLeaveQuota = (leaveType, role, tenure) => {
         case "admin":
         case "employee":
           switch (tenure) {
-            // Tenure < 1 year
+            // Tenure < 2 years
             case 0:
-              // TODO: Prorate it
-              break;
-
-            // Tenure 1-2 years
             case 1:
               leaveQuota = 8;
               break;
@@ -67,12 +59,8 @@ const calculateLeaveQuota = (leaveType, role, tenure) => {
       switch (role) {
         case "manager":
           switch (tenure) {
-            // Tenure < 1 year
+            // Tenure < 2 years
             case 0:
-              // TODO: Prorate it
-              break;
-
-            // Tenure 1-2 years
             case 1:
               leaveQuota = 16;
               break;
@@ -94,12 +82,8 @@ const calculateLeaveQuota = (leaveType, role, tenure) => {
         case "admin":
         case "employee":
           switch (tenure) {
-            // Tenure < 1 year
+            // Tenure < 2 years
             case 0:
-              // TODO: Prorate it
-              break;
-
-            // Tenure 1-2 years
             case 1:
               leaveQuota = 14;
               break;
