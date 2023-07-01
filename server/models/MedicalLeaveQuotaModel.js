@@ -3,16 +3,16 @@ const calculateTenure = require("../utils/automations/calculateTenure.js");
 
 class MedicalLeaveQuotaModel {
   constructor(employee) {
-    this.leave_type_id = 2;
+    this.leaveTypeId = 2;
 
     const tenure = calculateTenure(employee.joinedDate);
     const quota = calculateLeaveQuota(
-      this.leave_type_id,
+      this.leaveTypeId,
       employee.employeeRole,
       tenure
     );
 
-    this.employee_id = employee.employeeId;
+    this.employeeId = employee.employeeId;
     this.quota = quota;
   }
 }

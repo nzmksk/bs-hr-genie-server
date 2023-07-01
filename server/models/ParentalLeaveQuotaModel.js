@@ -4,8 +4,8 @@ class ParentalLeaveQuotaModel {
   constructor(employee) {
     const quota = calculateParentalLeaveQuota(employee);
 
-    this.leave_type_id = 3;
-    this.employee_id = employee.employeeId;
+    this.leaveTypeId = 3;
+    this.employeeId = employee.employeeId;
     this.quota = quota;
   }
 }
