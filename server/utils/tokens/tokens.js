@@ -5,7 +5,7 @@ const createAccessToken = (employeeId, employeeRole) => {
     { employeeId, employeeRole },
     process.env.ACCESS_TOKEN_SECRET,
     {
-      expiresIn: "15m",
+      expiresIn: "1h",
     }
   );
 };
@@ -27,9 +27,9 @@ const sendRefreshToken = (response, token) => {
    */
   const options = {
     httpOnly: true,
-    path: "refresh_token",
+    path: "/refresh_token",
   };
-  response.cookie("hr-genie", token, options);
+  response.cookie("hrgenie", token, options);
 };
 
 module.exports = {

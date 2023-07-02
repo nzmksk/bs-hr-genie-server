@@ -9,13 +9,56 @@ const {
 } = require("../models/models.js");
 const { makeTransaction } = require("../utils/transactions.js/transactions.js");
 const {
+  createAccessToken,
+  createRefreshToken,
+  sendRefreshToken,
+} = require("../utils/tokens/tokens.js");
+const {
   checkIfEmailExists,
   checkIfNricExists,
 } = require("../utils/validations/validations.js");
 
 const logoutAccount = async (request, response) => {
-  response.clearCookie("hr-genie", { path: "/refresh_token" });
+  response.clearCookie("hrgenie", { path: "/refresh_token" });
   return response.status(200).json({ message: "Logout successful." });
+};
+
+const renewRefreshToken = async (request, response) => {
+  const refreshToken = request.cookies.hrgenie;
+  if (!refreshToken) {
+    return response.status(400).json({ error: "Refresh token unavailable." });
+  }
+
+  let payload;
+
+  try {
+    payload = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+  } catch (error) {
+    return response
+      .status(400)
+      .json({ error: "Refresh token expired. Please login to continue." });
+  }
+
+  const employeeExistsQuery = {
+    text: queries.getEmployeeByID,
+    values: [payload.employeeId],
+  };
+  const employeeExistsResult = await pool.query(employeeExistsQuery);
+
+  if (employeeExistsResult.rows.length === 0) {
+    return response.status(400).json({ error: "User not found." });
+  }
+
+  const employee = employeeExistsResult[0];
+  if (employee.refreshToken !== refreshToken) {
+    return response.status(400).json({ error: "Invalid refresh token." });
+  } else {
+    const accessToken = createAccessToken(employee.employeeId);
+    const refreshToken = createRefreshToken(employee.employeeId);
+    employee.refreshToken = refreshToken;
+    sendRefreshToken(response, refreshToken);
+    return response.status(200).json({ token: accessToken });
+  }
 };
 
 const registerNewEmployee = async (request, response) => {
@@ -129,5 +172,6 @@ const registerNewEmployee = async (request, response) => {
 
 module.exports = {
   logoutAccount,
+  renewRefreshToken,
   registerNewEmployee,
 };

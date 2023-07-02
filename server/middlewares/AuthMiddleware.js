@@ -15,12 +15,15 @@ const authMiddleware = (request, response, next) => {
     const { employeeId, employeeRole } = decodedToken;
 
     // Attach the payload to the request object for later use if needed
-    request.employee_id = employeeId;
-    request.employee_role = employeeRole;
+    request.employeeId = employeeId;
+    request.employeeRole = employeeRole;
 
     next();
   } catch (error) {
-    return response.status(401).json({ error: "Unauthorized. Invalid token." });
+    if (error.name === "TokenExpiredError") {
+      return response.redirect("/refresh_token");
+    }
+    return response.status(500).json({ error: `${error.message}` });
   }
 };
 
