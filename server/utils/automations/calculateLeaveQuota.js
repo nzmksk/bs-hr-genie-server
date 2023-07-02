@@ -1,7 +1,7 @@
-const calculateLeaveQuota = (leaveType, role, tenure) => {
+const calculateLeaveQuota = (leaveTypeId, role, tenure) => {
   let leaveQuota;
 
-  switch (leaveType) {
+  switch (leaveTypeId) {
     // Annual leave allocation
     case 1:
       switch (role) {

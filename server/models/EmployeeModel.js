@@ -16,7 +16,6 @@ class EmployeeModel {
     joined_date,
     profile_image,
     created_at,
-    refresh_token,
   }) {
     this.departmentId = department_id;
     this.employeeId = employee_id;
@@ -32,7 +31,6 @@ class EmployeeModel {
     this.joinedDate = joined_date;
     this.profileImage = profile_image;
     this.createdAt = created_at;
-    this.refreshToken = refresh_token;
     this.cleanedEmail = this.cleanEmail();
   }
 
@@ -42,14 +40,15 @@ class EmployeeModel {
     // Remove dots, underscores, and hyphens in username
     const regex = new RegExp(/[.\-_]/g);
     const cleanedUsername = username.replace(regex, "");
-
     const cleanedEmail = cleanedUsername + "@" + domain;
+
     return cleanedEmail;
   };
 
   encryptPassword = async () => {
     const saltRounds = 10;
     this.hashedPassword = await bcrypt.hash(this.nric, saltRounds);
+
     return this.hashedPassword;
   };
 }

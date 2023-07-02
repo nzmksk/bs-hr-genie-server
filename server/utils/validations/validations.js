@@ -1,9 +1,10 @@
-const pool = require("../../config/db.js");
 const queries = require("../queries/queries.js");
+const { pool } = require("../../config/config.js");
 
 const checkIfEmailExists = async (email) => {
   let statusCode;
   let errorMessage;
+
   try {
     const emailExistsQuery = {
       text: queries.getEmployeeByEmail,
@@ -26,6 +27,7 @@ const checkIfEmailExists = async (email) => {
 const checkIfNricExists = async (nric) => {
   let statusCode;
   let errorMessage;
+
   try {
     const nricExistsQuery = {
       text: queries.getEmployeeByNric,

@@ -1,15 +1,27 @@
-version: '3.8'
+version: "3.8"
 services:
   express:
     build: .
     container_name: hr-server
     depends_on:
       - postgres
+      - redis
     environment:
+      # PostgreSQL configuration
+      - POSTGRES_HOST=postgres
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+
+      # Redis configuration
+      - REDIS_HOST=redis
+      - REDIS_USER=${REDIS_USER}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_DB=${REDIS_DB}
+      - REDIS_PORT=${REDIS_PORT}
+
+      # JWT secret
       - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
       - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
     ports:
@@ -26,8 +38,8 @@ services:
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PORT=${POSTGRES_PORT}
     ports:
       - "35432:5432"
     volumes:
@@ -35,6 +47,22 @@ services:
       - ./db_init/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - hr-network
+  redis:
+    container_name: hr-cache
+    image: redis/redis-stack
+    environment:
+      - REDIS_USER=${REDIS_USER}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_DB=${REDIS_DB}
+      - REDIS_PORT=${REDIS_PORT}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - hr-network
 networks:
   hr-network:
     driver: bridge
+volumes:
+  redis-data:

@@ -1,7 +1,7 @@
 const makeTransaction = async (
   queryObjectArray,
   successStatusCode,
-  successMessage
+  message
 ) => {
   let statusCode;
   let successMessage;
@@ -17,7 +17,7 @@ const makeTransaction = async (
     await pool.query("COMMIT");
 
     statusCode = successStatusCode;
-    successMessage = successMessage;
+    successMessage = message;
   } catch (error) {
     await pool.query("ROLLBACK");
     statusCode = 500;

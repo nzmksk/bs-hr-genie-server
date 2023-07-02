@@ -1,29 +1,39 @@
 const jwt = require("jsonwebtoken");
+const { redis } = require("../config/config.js");
 
-const authMiddleware = (request, response, next) => {
+const authMiddleware = async (request, response, next) => {
   const authorization = request.headers["authorization"];
 
   if (!authorization) {
     return response
       .status(401)
-      .json({ error: "Unauthorized. Authorization header missing." });
+      .json({ error: "Authorization header missing." });
   }
 
   try {
-    const token = authorization.split(" ")[1];
-    const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    const { employeeId, employeeRole } = decodedToken;
+    const accessToken = authorization.split(" ")[1];
+    const decodedToken = jwt.verify(
+      accessToken,
+      process.env.ACCESS_TOKEN_SECRET
+    );
+    const { email, employeeId, employeeRole } = decodedToken;
+    
+    // Check if access token is blacklisted
+    const blacklistedToken = await redis.get(`${employeeId}:AT`);
 
-    // Attach the payload to the request object for later use if needed
-    request.employeeId = employeeId;
-    request.employeeRole = employeeRole;
+    if (accessToken === blacklistedToken) {
+      return response.status(401).json({ error: "Authentication failed." });
+    } else {
+      // Attach the payload to the request object for later use if needed
+      request.email = email;
+      request.employeeId = employeeId;
+      request.employeeRole = employeeRole;
 
-    next();
-  } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      return response.redirect("/refresh_token");
+      next();
     }
-    return response.status(500).json({ error: `${error.message}` });
+  } catch (error) {
+    // If access token has expired, redirect client to /refresh_token endpoint for token renewal
+    return response.redirect("/refresh_token");
   }
 };
 

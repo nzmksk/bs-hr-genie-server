@@ -1,4 +1,6 @@
+const jwt = require("jsonwebtoken");
 const queries = require("../utils/queries/queries.js");
+const { pool, redis } = require("../config/config.js");
 const {
   AnnualLeaveQuotaModel,
   EmergencyLeaveQuotaModel,
@@ -7,57 +9,91 @@ const {
   ParentalLeaveQuotaModel,
   UnpaidLeaveQuotaModel,
 } = require("../models/models.js");
-const { makeTransaction } = require("../utils/transactions.js/transactions.js");
 const {
   createAccessToken,
   createRefreshToken,
   sendRefreshToken,
 } = require("../utils/tokens/tokens.js");
+const { makeTransaction } = require("../utils/transactions.js/transactions.js");
 const {
   checkIfEmailExists,
   checkIfNricExists,
 } = require("../utils/validations/validations.js");
 
 const logoutAccount = async (request, response) => {
+  // Clear refresh token on the client side
   response.clearCookie("hrgenie", { path: "/refresh_token" });
-  return response.status(200).json({ message: "Logout successful." });
+
+  // Revoke access token
+  const authorization = request.headers["authorization"];
+  const accessToken = authorization ? authorization.split(" ")[1] : null;
+
+  if (accessToken) {
+    try {
+      const decodedToken = jwt.decode(accessToken);
+      const tokenExpiration = decodedToken.exp;
+
+      // Clear refresh token on Redis
+      await redis.del(`${request.employeeId}:RT`);
+
+      // Blacklist access token on Redis
+      await redis.set(
+        `${request.employeeId}:AT`,
+        accessToken,
+        "EXAT",
+        tokenExpiration
+      );
+
+      return response
+        .status(200)
+        .json({ message: "Token revocation successful." });
+    } catch (error) {
+      return response.status(500).json({ error: `${error.message}` });
+    }
+  }
 };
 
 const renewRefreshToken = async (request, response) => {
-  const refreshToken = request.cookies.hrgenie;
-  if (!refreshToken) {
-    return response.status(400).json({ error: "Refresh token unavailable." });
+  const currentRefreshToken = request.cookies.hrgenie;
+  if (!currentRefreshToken) {
+    return response.status(401).json({ error: "Authentication failed." });
   }
 
   let payload;
 
   try {
-    payload = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+    payload = jwt.verify(currentRefreshToken, process.env.REFRESH_TOKEN_SECRET);
   } catch (error) {
-    return response
-      .status(400)
-      .json({ error: "Refresh token expired. Please login to continue." });
+    return response.status(401).json({ error: "Authentication failed." });
   }
 
   const employeeExistsQuery = {
-    text: queries.getEmployeeByID,
+    text: queries.getEmployeeById,
     values: [payload.employeeId],
   };
   const employeeExistsResult = await pool.query(employeeExistsQuery);
 
   if (employeeExistsResult.rows.length === 0) {
-    return response.status(400).json({ error: "User not found." });
+    return response.status(404).json({ error: "User not found." });
   }
 
-  const employee = employeeExistsResult[0];
-  if (employee.refreshToken !== refreshToken) {
-    return response.status(400).json({ error: "Invalid refresh token." });
+  const refreshToken = await redis.get(`${payload.employeeId}:RT`);
+
+  if (refreshToken !== currentRefreshToken) {
+    return response.status(401).json({ error: "Authentication failed." });
   } else {
-    const accessToken = createAccessToken(employee.employeeId);
-    const refreshToken = createRefreshToken(employee.employeeId);
-    employee.refreshToken = refreshToken;
-    sendRefreshToken(response, refreshToken);
-    return response.status(200).json({ token: accessToken });
+    const newAccessToken = createAccessToken({ payload });
+    const newRefreshToken = createRefreshToken({ payload });
+
+    // Save refresh token on client side
+    sendRefreshToken(response, newRefreshToken);
+
+    // Save refresh token on Redis
+    await redis.set(`${payload.employeeId}:RT`, newRefreshToken);
+
+    return response
+      .status(200)
+      .json({ message: "Authentication successful.", token: newAccessToken });
   }
 };
 

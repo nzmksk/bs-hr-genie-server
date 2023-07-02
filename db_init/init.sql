@@ -11,7 +11,13 @@ CREATE TABLE department(
 );
 
 CREATE TYPE gender_type AS ENUM ('male', 'female');
-CREATE TYPE role_type AS ENUM ('employee', 'manager', 'admin', 'resigned', 'superadmin');
+CREATE TYPE role_type AS ENUM (
+    'employee',
+    'manager',
+    'admin',
+    'resigned',
+    'superadmin'
+);
 CREATE SEQUENCE employee_id_seq;
 CREATE TABLE employee(
     department_id VARCHAR(3) NOT NULL REFERENCES department(department_id) ON DELETE CASCADE,
@@ -28,7 +34,6 @@ CREATE TABLE employee(
     joined_date DATE,
     profile_image BYTEA,
     created_at DATE NOT NULL DEFAULT CURRENT_DATE,
-    refresh_token TEXT,
     UNIQUE (email, nric)
 );
 
@@ -59,7 +64,13 @@ CREATE TRIGGER set_employee_id_trigger
     FOR EACH ROW
     EXECUTE FUNCTION set_employee_id();
 
-CREATE TYPE leave_type AS ENUM ('annual', 'medical', 'parental', 'emergency', 'unpaid');
+CREATE TYPE leave_type AS ENUM (
+    'annual',
+    'medical',
+    'parental',
+    'emergency',
+    'unpaid'
+);
 CREATE TABLE leave_category(
     leave_type_id SMALLSERIAL PRIMARY KEY,
     leave_type_name leave_type NOT NULL
@@ -71,8 +82,17 @@ CREATE TABLE leave_quota(
     quota SMALLINT NOT NULL
 );
 
-CREATE TYPE duration_type AS ENUM ('full-day', 'first-half', 'second-half');
-CREATE TYPE status_type AS ENUM ('pending', 'approved', 'rejected', 'cancelled');
+CREATE TYPE duration_type AS ENUM (
+    'full-day',
+    'first-half',
+    'second-half'
+);
+CREATE TYPE status_type AS ENUM (
+    'pending',
+    'approved',
+    'rejected',
+    'cancelled'
+);
 CREATE SEQUENCE leave_id_seq;
 CREATE TABLE leave(
     leave_id VARCHAR(10) PRIMARY KEY,
@@ -106,8 +126,30 @@ CREATE TRIGGER set_leave_id_trigger
 INSERT INTO department (department_id, department_name)
 VALUES ('HR', 'Human Resources');
 
-INSERT INTO employee (department_id, employee_role, first_name, last_name, gender, email, hashed_password, nric)
-VALUES ('HR', 'superadmin', 'Super', 'Admin', 'male', 'superadmin', '$2b$10$usOESTL8LtiFvynFOJOEuOPvdshPTSu98nLoZ/ERhypB8JrYPHL4C', '123456789012');
+INSERT INTO employee (
+    department_id,
+    employee_role,
+    first_name,
+    last_name,
+    gender,
+    email,
+    hashed_password,
+    nric
+)
+VALUES (
+    'HR',
+    'superadmin',
+    'Super',
+    'Admin',
+    'male',
+    'superadmin',
+    '$2b$10$usOESTL8LtiFvynFOJOEuOPvdshPTSu98nLoZ/ERhypB8JrYPHL4C',
+    '123456789012'
+);
 
 INSERT INTO leave_category (leave_type_name)
-VALUES ('annual', 'medical', 'parental', 'emergency', 'unpaid');
+VALUES ('annual'),
+    ('medical'),
+    ('parental'),
+    ('emergency'),
+    ('unpaid');

@@ -10,7 +10,7 @@ WHERE department_id = $1
 RETURNING *`;
 const deleteEmployeeInDepartment = `DELETE FROM employee
 WHERE department_id = $1`;
-const getDepartmentByID = "SELECT * FROM department WHERE department_id = $1";
+const getDepartmentById = "SELECT * FROM department WHERE department_id = $1";
 const getDepartmentByName = `SELECT * FROM department
 WHERE department_name = $1`;
 const getDepartments = "SELECT * FROM department";
@@ -31,7 +31,7 @@ WHERE employee_id = $1
 RETURNING *`;
 const getEmployees = "SELECT * FROM employee";
 const getEmployeeByEmail = "SELECT * FROM employee WHERE email = $1";
-const getEmployeeByID = "SELECT * FROM employee WHERE employee_id = $1";
+const getEmployeeById = "SELECT * FROM employee WHERE employee_id = $1";
 const getEmployeeByNric = "SELECT * FROM employee WHERE nric = $1";
 const registerNewEmployee = `INSERT INTO employee (
     department_id,
@@ -47,6 +47,12 @@ const registerNewEmployee = `INSERT INTO employee (
     hashed_password
 )
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`;
+const revokeAccessToken = `INSERT INTO revoked_token (
+    employee_id,
+    token,
+    expiration_time
+)
+VALUES ($1, $2, $3)`;
 const updateEmployeeDetails = `UPDATE employee
 SET department_id = $1,
     employee_role = $2,
@@ -63,8 +69,7 @@ WHERE employee_id = $12
 RETURNING *`;
 const updateEmployeeRefreshToken = `UPDATE employee
 SET refresh_token = $1
-WHERE email = $2
-RETURNING email, refresh_token`;
+WHERE email = $2`;
 
 // LEAVE
 const allocateLeave = `INSERT INTO leave_quota (
@@ -109,7 +114,7 @@ module.exports = {
   createDepartment,
   deleteDepartment,
   deleteEmployeeInDepartment,
-  getDepartmentByID,
+  getDepartmentById,
   getDepartmentByName,
   getDepartments,
   updateDepartment,
@@ -119,9 +124,10 @@ module.exports = {
   deleteEmployee,
   getEmployees,
   getEmployeeByEmail,
-  getEmployeeByID,
+  getEmployeeById,
   getEmployeeByNric,
   registerNewEmployee,
+  revokeAccessToken,
   updateEmployeeDetails,
   updateEmployeeRefreshToken,
 
