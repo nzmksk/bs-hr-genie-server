@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bo
 // Routes
 app.use("/", routes.accountRoutes);
 // Protected routes
-app.use("/", authMiddleware, routes.authRoutes);
+app.use("/auth", authMiddleware, routes.authRoutes);
 app.use("/departments", authMiddleware, routes.departmentRoutes);
 app.use("/employees", authMiddleware, routes.employeeRoutes);
 app.use("/leaves", authMiddleware, routes.leaveRoutes);

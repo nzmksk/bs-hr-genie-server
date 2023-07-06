@@ -142,7 +142,7 @@ VALUES (
     'Super',
     'Admin',
     'male',
-    'superadmin',
+    'superadmin@admin.com',
     '$2b$10$usOESTL8LtiFvynFOJOEuOPvdshPTSu98nLoZ/ERhypB8JrYPHL4C',
     '123456789012'
 );

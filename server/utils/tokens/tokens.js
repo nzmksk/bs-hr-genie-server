@@ -5,7 +5,8 @@ const createAccessToken = (email, employeeId, employeeRole) => {
     { email, employeeId, employeeRole },
     process.env.ACCESS_TOKEN_SECRET,
     {
-      expiresIn: "15m",
+      expiresIn: "1m",
+
     }
   );
 };
@@ -15,7 +16,8 @@ const createRefreshToken = (email, employeeId, employeeRole) => {
     { email, employeeId, employeeRole },
     process.env.REFRESH_TOKEN_SECRET,
     {
-      expiresIn: "1d",
+      notBefore: "1m",
+      expiresIn: "6h",
     }
   );
 };

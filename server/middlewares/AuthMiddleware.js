@@ -17,7 +17,7 @@ const authMiddleware = async (request, response, next) => {
       process.env.ACCESS_TOKEN_SECRET
     );
     const { email, employeeId, employeeRole } = decodedToken;
-    
+
     // Check if access token is blacklisted
     const blacklistedToken = await redis.get(`${employeeId}:AT`);
 
@@ -32,8 +32,13 @@ const authMiddleware = async (request, response, next) => {
       next();
     }
   } catch (error) {
-    // If access token has expired, redirect client to /refresh_token endpoint for token renewal
-    return response.redirect("/refresh_token");
+    if (error instanceof jwt.TokenExpiredError) {
+      return response
+        .status(400)
+        .json({ error: "Access token expired. Please refresh your token." });
+      } else {
+      return response.status(401).json({ error: "Authentication failed." });
+    }
   }
 };
 

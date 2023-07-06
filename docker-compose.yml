@@ -2,6 +2,7 @@ version: "3.8"
 services:
   express:
     build: .
+    image: hr-genie:latest
     container_name: hr-server
     depends_on:
       - postgres
@@ -16,9 +17,7 @@ services:
 
       # Redis configuration
       - REDIS_HOST=redis
-      - REDIS_USER=${REDIS_USER}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_DB=${REDIS_DB}
       - REDIS_PORT=${REDIS_PORT}
 
       # JWT secret
@@ -49,11 +48,10 @@ services:
       - hr-network
   redis:
     container_name: hr-cache
-    image: redis/redis-stack
+    image: redis
+    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
     environment:
-      - REDIS_USER=${REDIS_USER}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_DB=${REDIS_DB}
       - REDIS_PORT=${REDIS_PORT}
     ports:
       - "6379:6379"
