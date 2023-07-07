@@ -109,6 +109,11 @@ RETURNING *`;
 const getLeaveApplications = "SELECT * FROM leave";
 const getLeaveApplicationsByDepartment = `SELECT * FROM leave
 WHERE leave_id LIKE '%' || $1 || '%'`;
+const getLeaveCount = `SELECT lc.leave_type_name, lq.quota
+FROM leave_category AS lc
+JOIN leave_quota AS lq
+ON lq.leave_type_id = lc.leave_type_id
+WHERE lq.employee_id = $1`;
 
 module.exports = {
   // Department
@@ -139,4 +144,5 @@ module.exports = {
   deleteLeaveApplication,
   getLeaveApplications,
   getLeaveApplicationsByDepartment,
+  getLeaveCount,
 };

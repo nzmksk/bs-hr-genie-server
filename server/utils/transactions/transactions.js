@@ -1,3 +1,5 @@
+const { pool } = require("../../config/config.js");
+
 const makeTransaction = async (
   queryObjectArray,
   successStatusCode,
@@ -10,9 +12,9 @@ const makeTransaction = async (
   try {
     await pool.query("BEGIN");
 
-    queryObjectArray.forEach(async (queryObject) => {
+    for (const queryObject of queryObjectArray) {
       await pool.query(queryObject);
-    });
+    }
 
     await pool.query("COMMIT");
 

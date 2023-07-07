@@ -21,12 +21,12 @@ app.use(express.json()); // Parse JSON-encoded request bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
 
 // Routes
-app.use("/", routes.accountRoutes);
+app.use("/", routes.authRoutes);
 // Protected routes
-app.use("/auth", authMiddleware, routes.authRoutes);
 app.use("/departments", authMiddleware, routes.departmentRoutes);
 app.use("/employees", authMiddleware, routes.employeeRoutes);
 app.use("/leaves", authMiddleware, routes.leaveRoutes);
+app.use("/leave_quota", authMiddleware, routes.leaveQuotaRoutes);
 
 app.listen(port, () => {
   console.log(`Server is listening on http://localhost:${port}`);

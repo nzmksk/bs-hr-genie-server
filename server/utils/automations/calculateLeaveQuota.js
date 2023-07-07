@@ -2,8 +2,9 @@ const calculateLeaveQuota = (leaveTypeId, role, tenure) => {
   let leaveQuota;
 
   switch (leaveTypeId) {
-    // Annual leave allocation
+    // Annual leave allocation (including emergency leave)
     case 1:
+    case 4:
       switch (role) {
         case "manager":
           switch (tenure) {
