@@ -27,6 +27,7 @@ CREATE TABLE employee(
     last_name VARCHAR(50) NOT NULL,
     gender gender_type NOT NULL,
     email VARCHAR(50) NOT NULL,
+    position VARCHAR(50) NOT NULL,
     hashed_password TEXT NOT NULL,
     phone VARCHAR(20),
     nric CHAR(12) NOT NULL,
@@ -101,9 +102,11 @@ CREATE TABLE leave(
     start_date DATE,
     end_date DATE,
     duration duration_type,
+    duration_length SMALLINT, 
     reason VARCHAR(255),
     attachment BYTEA,
     application_status status_type DEFAULT 'pending',
+    created_at DATE NOT NULL DEFAULT CURRENT_DATE,
     approved_rejected_by VARCHAR(6),
     reject_reason VARCHAR(255)
 );
@@ -133,8 +136,12 @@ INSERT INTO employee (
     last_name,
     gender,
     email,
+    position,
     hashed_password,
-    nric
+    nric,
+    is_married,
+    joined_date,
+    phone
 )
 VALUES (
     'HR',
@@ -143,8 +150,12 @@ VALUES (
     'Admin',
     'male',
     'superadmin@admin.com',
+    'Superadmin',
     '$2b$10$usOESTL8LtiFvynFOJOEuOPvdshPTSu98nLoZ/ERhypB8JrYPHL4C',
-    '123456789012'
+    '123456789012',
+    'false',
+    '1970-01-01',
+    '0123456789'
 );
 
 INSERT INTO leave_category (leave_type_name)

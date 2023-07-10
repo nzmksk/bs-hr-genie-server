@@ -13,7 +13,7 @@ const port = process.env.HTTP_PORT ?? 3000;
 app.use(cookieParser()); // Parse cookies
 app.use(
   cors({
-    origin: "http://localhost:8080",
+    origin: "http://localhost:3000",
     credentials: true,
   })
 );
