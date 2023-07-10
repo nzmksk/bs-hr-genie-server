@@ -128,6 +128,7 @@ const registerNewEmployee = async (request, response) => {
           employee.lastName,
           employee.gender,
           employee.email,
+          employee.position,
           employee.phone,
           employee.nric,
           employee.isMarried,

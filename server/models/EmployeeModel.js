@@ -9,6 +9,7 @@ class EmployeeModel {
     last_name,
     gender,
     email,
+    position,
     hashed_password,
     phone,
     nric,
@@ -24,6 +25,7 @@ class EmployeeModel {
     this.lastName = last_name;
     this.gender = gender;
     this.email = email;
+    this.position = position;
     this.hashedPassword = hashed_password;
     this.phone = phone;
     this.nric = nric;
