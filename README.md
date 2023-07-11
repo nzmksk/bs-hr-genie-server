@@ -41,30 +41,34 @@ Follow these steps to set up and run the project using Docker.
    ```
 3. Build the Docker image and run the containers:
    ```bash
-   docker-compose up --build -d
+   make server-up
    ```
-4. To check if the server and database is running:
-   ```bash
-   docker logs hr-server
-   docker logs hr-db
-   ```
-   The server will run on port `2000` while the database will run on port `35432`.
+   The server will run on port `2000` while the database and Redis will run on port `35432` and `6379` respectively.
 
 ## Other Useful Commands
 
-1. To stop the server and database:
-   ```bash
-   docker-compose down -v
-   sudo rm -r data
-   ```
-2. To run the server script while the server is running:
-   ```bash
-   docker exec -it hr-server sh
-   ```
-3. To run PostgreSQL script while the database is running:
-   ```bash
-   docker exec -it hr-db psql -U postgres -d hr-genie
-   ```
+- To stop the server:
+  ```bash
+  make server-down
+  ```
+- To run node.js terminal:
+  ```bash
+  make node-terminal
+  ```
+- To run PSQL CLI:
+  ```bash
+  make psql-cli
+  ```
+- To run Redis CLI:
+  ```bash
+  make redis-cli
+  ```
+- To read the logs of server, database, or Redis:
+  ```bash
+  make log-server
+  make log-db
+  make log-redis
+  ```
 
 # API Guideline
 
@@ -74,25 +78,50 @@ The base URL for all API endpoints is `http://localhost:2000`
 
 ## Authentication
 
-Authentication is required for accessing `[protected]` endpoints. The authentication is based on JWT (JSON Web Token). To authenticate requests, include the JWT token in the `Authorization` header of each request with the `Bearer` scheme. The token should be provided after the `Bearer` keyword.\
+Authentication is required for accessing `[protected]` endpoints. The authentication is based on [JWT (JSON Web Token)](https://github.com/auth0/node-jsonwebtoken#readme). To authenticate requests, include the access token in the `Authorization` header of each request with the `Bearer` scheme. The token should be provided after the `Bearer` keyword.\
 \
-Example GET request in Dart to protected endpoints:
+Example GET request to protected endpoints in Dart:
 
 ```Dart
    final baseUrl = "http://localhost:2000";
    final endpoint = "/protected_endpoint";
    final headers = {
       "Content-Type": "application/json",
-      "Authorization": "Bearer <your-jwt-token>",
+      "Authorization": "Bearer <your-access-token>",
    };
 
    final http.Response response = await http.get(
-      Uri.parse(baseUrl + endpoint),
+      Uri.parse("$baseUrl$endpoint"),
       headers: headers,
    );
 ```
 
-JWT token can be obtained through the `/login` or `/refresh_token` endpoints. Please note that expired or invalid tokens will result in a `401 Unauthorized` response.
+Access and refresh tokens can be obtained from the [`/login`](#post-login) or [`/refresh_token`](#post-refresh_token-protected) endpoints. Please note that expired or invalid tokens will result in a `400 Bad Request` or `401 Unauthorized` response.\
+\
+**Error Examples:**
+
+- Error: 400 Bad Request\
+  Access token expired. Example response:
+  ```JSON
+  {
+     "error": "Access token expired. Please refresh your token."
+  }
+  ```
+  Upon receiving this error, you should **refresh your token by presenting your refresh token** to [`/refresh_token`](#post-refresh_token-protected) endpoint using `POST` request.
+- Error: 401 Unauthorized\
+  Access token was not included in request header. Example response:
+  ```JSON
+  {
+     "error": "Authorization header missing."
+  }
+  ```
+- Error: 401 Unauthorized\
+  Access token was invalid or blacklisted. Access token can be blacklisted after a client is logging out or logging in from another device. Example response:
+  ```JSON
+  {
+     "error": "Authentication failed."
+  }
+  ```
 
 ## Endpoints
 
@@ -100,7 +129,7 @@ JWT token can be obtained through the `/login` or `/refresh_token` endpoints. Pl
 
 ### POST /login
 
-This endpoint is used for user authentication and obtaining an access token.
+This endpoint is used for user authentication and obtaining access and refresh tokens. **Access token will be send in JSON format** while the **refresh token is sent as a cookie**.
 
 **Request**\
 The request should include the following parameters in the request body:
@@ -121,7 +150,7 @@ Example request:
    };
 
    final http.Response response = await http.post(
-      Uri.parse(baseUrl + endpoint),
+      Uri.parse("$baseUrl$endpoint"),
       headers: headers,
       body: jsonEncode(body)
    );
@@ -130,18 +159,30 @@ Example request:
 **Response**
 
 - Success: 200 OK\
-  The login was successful. The response body will contain a success message and an access token. Example response:
+  The login was successful. The response body will contain the user's data, a success message, and an access token. Example response:
   ```JSON
   {
+     "data": {
+        "departmentId": "HR",
+        "employeeId": "HR001",
+        "employeeRole": "employee",
+        "firstName": "John",
+        "lastName": "Doe",
+        "gender": "male",
+        "email": "example@domain.com",
+        "position": "Junior Software Engineer",
+        "hashedPassword": "<hashed_password>",
+        "phone": "0123456789",
+        "nric": "123456789012",
+        "isMarried": false,
+        "joinedDate": "1970-01-01T00:00:00.000Z",
+        "profileImage": null,
+        "createdAt": "1970-01-01T00:00:00.000Z",
+        "lastLogin": null,
+        "cleanedEmail": "example@domain.com"
+    },
      "message": "Authentication successful.",
      "token": "<your-access-token>"
-  }
-  ```
-- Error: 400 Bad Request\
-  The request was invalid or missing required parameters. Example response:
-  ```JSON
-  {
-     "error": "Email does not exist. Please contact admin."
   }
   ```
 - Error: 401 Unauthorized\
@@ -149,6 +190,13 @@ Example request:
   ```JSON
   {
      "error": "Invalid password."
+  }
+  ```
+- Error: 404 Not Found\
+  The request was invalid or missing required parameters. Example response:
+  ```JSON
+  {
+     "error": "Email does not exist. Please contact admin."
   }
   ```
 - Error: 500 Internal Server Error\
@@ -164,7 +212,7 @@ Example request:
 
 ### POST /refresh_token `[protected]`
 
-This endpoint is used to renew client's access token using valid refresh token. Access token has validity of 15 minutes while refresh token has validity of 24 hours. Expired access token will automatically redirect clients to this endpoint for token renewal.
+This endpoint is used to renew client's access token using valid refresh token. Access token has validity of 15 minutes while refresh token has validity of 6 hours.
 
 **Response**
 
