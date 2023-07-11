@@ -72,6 +72,10 @@ RETURNING *`;
 const updateEmployeeRefreshToken = `UPDATE employee
 SET refresh_token = $1
 WHERE email = $2`;
+const updateLastLogin = `UPDATE employee
+SET is_logged_in = TRUE,
+    last_login = CURRENT_TIMESTAMP
+WHERE employee_id = $1`;
 
 // LEAVE
 const allocateLeave = `INSERT INTO leave_quota (
@@ -107,7 +111,8 @@ RETURNING *`;
 const deleteLeaveApplication = `DELETE FROM leave
 WHERE leave_id = $1
 RETURNING *`;
-const getLeaveApplications = "SELECT * FROM leave";
+const getLeaveApplications = `SELECT * FROM leave
+WHERE employee_id = $1`;
 const getLeaveApplicationsByDepartment = `SELECT * FROM leave
 WHERE leave_id LIKE '%' || $1 || '%'`;
 const getLeaveCount = `SELECT lc.leave_type_name, lq.quota
@@ -137,6 +142,7 @@ module.exports = {
   revokeAccessToken,
   updateEmployeeDetails,
   updateEmployeeRefreshToken,
+  updateLastLogin,
 
   // Leave
   allocateLeave,

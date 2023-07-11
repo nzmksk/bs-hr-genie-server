@@ -1,8 +1,8 @@
-const queries = require("../utils/queries/queries.js");
-const { pool } = require("../config/config.js");
+const psqlQuery = require("../services/psql/queries.js");
+const pool = require("../config/db.js");
 
 const getEmployees = (request, response) => {
-  pool.query(queries.getEmployees, (error, results) => {
+  pool.query(psqlQuery.getEmployees, (error, results) => {
     if (error) {
       console.error(error);
       return response.status(500).json({ message: "Internal server error." });
@@ -13,11 +13,11 @@ const getEmployees = (request, response) => {
   });
 };
 
-const getEmployeeByID = (request, response) => {
-  const employeeID = request.params.id;
+const getEmployeeById = (request, response) => {
+  const employeeId = request.params.id;
   pool.query(
-    queries.getEmployeeByID,
-    [employeeID.toUpperCase()],
+    psqlQuery.getEmployeeById,
+    [employeeId.toUpperCase()],
     (error, results) => {
       if (error) {
         console.error(error);
@@ -46,7 +46,7 @@ const updateEmployeeDetails = (request, response) => {
     joined_date,
   } = request.body;
   pool.query(
-    queries.updateEmployeeDetails,
+    psqlQuery.updateEmployeeDetails,
     [
       department_id,
       employee_role,
@@ -81,7 +81,7 @@ const deleteEmployee = (request, response) => {
     let employee;
     pool.query("BEGIN");
     pool.query(
-      queries.deleteEmployee,
+      psqlQuery.deleteEmployee,
       [employeeID.toUpperCase()],
       (error, results) => {
         employee = results.rows[0];
@@ -100,7 +100,7 @@ const deleteEmployee = (request, response) => {
 
 module.exports = {
   getEmployees,
-  getEmployeeByID,
+  getEmployeeById,
   updateEmployeeDetails,
   deleteEmployee,
 };

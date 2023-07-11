@@ -1,26 +1,30 @@
-const queries = require("../utils/queries/queries.js");
-const { pool } = require("../config/config.js");
+const psqlQuery = require("../services/psql/queries.js");
+const pool = require("../config/db.js");
 
 const getLeaveApplications = (request, response) => {
-  pool.query(queries.getLeaveApplications, (error, results) => {
-    if (error) {
-      console.error(error);
-      return response.status(500).json({ message: "Internal server error." });
-    } else if (results.rows.length > 0) {
-      const leaveApplications = results.rows;
-      return response.status(200).json({ data: leaveApplications });
-    } else {
-      return response
-        .status(200)
-        .json({ data: [], message: "No data available." });
+  pool.query(
+    psqlQuery.getLeaveApplications,
+    [request.employeeId],
+    (error, results) => {
+      if (error) {
+        console.error(error);
+        return response.status(500).json({ message: "Internal server error." });
+      } else if (results.rows.length > 0) {
+        const leaveApplications = results.rows;
+        return response.status(200).json({ data: leaveApplications });
+      } else {
+        return response
+          .status(200)
+          .json({ data: [], message: "No data available." });
+      }
     }
-  });
+  );
 };
 
 const getLeaveApplicationsByDepartment = (request, response) => {
   const departmentID = request.params.id;
   pool.query(
-    queries,
+    psqlQuery,
     getLeaveApplicationsByDepartment,
     [departmentID],
     (error, results) => {
@@ -50,7 +54,7 @@ const applyLeave = (request, response) => {
     attachment,
   } = request.body;
   pool.query(
-    queries.applyLeave,
+    psqlQuery.applyLeave,
     [
       employee_id,
       leave_type_id,
@@ -90,7 +94,7 @@ const approveRejectLeave = (request, response) => {
     reject_reason,
   } = request.body;
   pool.query(
-    queries.approveRejectLeave,
+    psqlQuery.approveRejectLeave,
     [
       employee_id,
       leave_type_id,
@@ -123,9 +127,13 @@ const deleteLeaveApplication = (request, response) => {
   try {
     let leaveApplication;
     pool.query("BEGIN");
-    pool.query(queries.deleteLeaveApplication, [leave_id], (error, results) => {
-      leaveApplication = results.rows[0];
-    });
+    pool.query(
+      psqlQuery.deleteLeaveApplication,
+      [leave_id],
+      (error, results) => {
+        leaveApplication = results.rows[0];
+      }
+    );
     pool.query("COMMIT");
     return response
       .status(200)

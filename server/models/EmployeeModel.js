@@ -16,7 +16,9 @@ class EmployeeModel {
     is_married,
     joined_date,
     profile_image,
+    is_logged_in,
     created_at,
+    last_login,
   }) {
     this.departmentId = department_id;
     this.employeeId = employee_id;
@@ -32,7 +34,9 @@ class EmployeeModel {
     this.isMarried = is_married;
     this.joinedDate = joined_date;
     this.profileImage = profile_image;
+    this.isLoggedIn = is_logged_in;
     this.createdAt = created_at;
+    this.lastLogin = last_login;
     this.cleanedEmail = this.cleanEmail();
   }
 

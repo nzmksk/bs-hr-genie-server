@@ -34,7 +34,9 @@ CREATE TABLE employee(
     is_married BOOLEAN,
     joined_date DATE,
     profile_image BYTEA,
-    created_at DATE NOT NULL DEFAULT CURRENT_DATE,
+    is_logged_in BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP,
     UNIQUE (email, nric)
 );
 
@@ -102,11 +104,11 @@ CREATE TABLE leave(
     start_date DATE,
     end_date DATE,
     duration duration_type,
-    duration_length SMALLINT, 
+    duration_length NUMERIC(2, 1),
     reason VARCHAR(255),
     attachment BYTEA,
     application_status status_type DEFAULT 'pending',
-    created_at DATE NOT NULL DEFAULT CURRENT_DATE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     approved_rejected_by VARCHAR(6),
     reject_reason VARCHAR(255)
 );
@@ -117,6 +119,7 @@ CREATE OR REPLACE FUNCTION set_leave_id()
 $$
 BEGIN
     NEW.leave_id := NEW.employee_id || '-' || NEW.leave_type_id || LPAD(CAST(NEXTVAL('leave_id_seq') AS VARCHAR), 2, '0');
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -138,10 +141,11 @@ INSERT INTO employee (
     email,
     position,
     hashed_password,
+    phone,
     nric,
     is_married,
     joined_date,
-    phone
+    created_at
 )
 VALUES (
     'HR',
@@ -152,10 +156,41 @@ VALUES (
     'superadmin@admin.com',
     'Superadmin',
     '$2b$10$usOESTL8LtiFvynFOJOEuOPvdshPTSu98nLoZ/ERhypB8JrYPHL4C',
+    '0123456789',
     '123456789012',
     'false',
     '1970-01-01',
-    '0123456789'
+    '1970-01-01 00:00:00'
+),
+(
+    'HR',
+    'employee',
+    'Jane',
+    'Doe',
+    'female',
+    'jane@domain.com',
+    'Talent Acquisition Specialist',
+    '$2b$10$usOESTL8LtiFvynFOJOEuOPvdshPTSu98nLoZ/ERhypB8JrYPHL4C',
+    '0123456789',
+    '123456789013',
+    'true',
+    '2023-03-06',
+    '1970-01-01 00:00:00'
+),
+(
+    'HR',
+    'manager',
+    'John',
+    'Doe',
+    'male',
+    'john@domain.com',
+    'Team Lead',
+    '$2b$10$usOESTL8LtiFvynFOJOEuOPvdshPTSu98nLoZ/ERhypB8JrYPHL4C',
+    '0123456789',
+    '123456789014',
+    'false',
+    '2020-03-06',
+    '1970-01-01 00:00:00'
 );
 
 INSERT INTO leave_category (leave_type_name)
@@ -164,3 +199,33 @@ VALUES ('annual'),
     ('parental'),
     ('emergency'),
     ('unpaid');
+
+INSERT INTO leave (
+    employee_id,
+    leave_type_id,
+    start_date,
+    end_date,
+    duration,
+    duration_length,
+    application_status
+)
+VALUES ('HR003', 1, '2023-07-10', '2023-07-11', 'full-day', 2, 'approved'),
+    ('HR003', 1, '2023-07-12', '2023-07-16', 'full-day', 5, 'rejected'),
+    ('HR003', 1, '2023-07-12', '2023-07-16', 'first-half', 0.5, 'pending');
+
+INSERT INTO leave_quota (employee_id, leave_type_id, quota)
+VALUES ('HR001', 1, 20),
+    ('HR001', 2, 22),
+    ('HR001', 3, 0),
+    ('HR001', 4, 20),
+    ('HR001', 5, 60),
+    ('HR002', 1, 8),
+    ('HR002', 2, 14),
+    ('HR002', 3, 98),
+    ('HR002', 4, 8),
+    ('HR002', 5, 60),
+    ('HR003', 1, 16),
+    ('HR003', 2, 18),
+    ('HR003', 3, 0),
+    ('HR003', 4, 16),
+    ('HR003', 5, 60);

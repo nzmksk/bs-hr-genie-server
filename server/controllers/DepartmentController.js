@@ -1,5 +1,5 @@
-const queries = require("../utils/queries/queries.js");
-const { pool } = require("../config/config.js");
+const psqlQuery = require("../services/psql/queries.js");
+const pool = require("../config/db.js");
 
 const createDepartment = (request, response) => {
   const { department_id, department_name } = request.body;
@@ -9,10 +9,11 @@ const createDepartment = (request, response) => {
       .json({ message: "Department ID must be 2-3 characters." });
   } else {
     pool.query(
-      queries.getDepartmentByID,
+      psqlQuery.getDepartmentById,
       [department_id.toUpperCase()],
       (error, results) => {
         if (error) {
+          console.error(`Find department by ID error: ${error}`);
           console.error(error);
           return response
             .status(500)
@@ -28,14 +29,14 @@ const createDepartment = (request, response) => {
         // If department does not exist
         else {
           pool.query(
-            queries.createDepartment,
+            psqlQuery.createDepartment,
             [department_id.toUpperCase(), department_name],
             (error, results) => {
               if (error) {
-                console.error(error);
+                console.error(`Create department error: ${error}`);
                 if (error.code === "23505") {
                   pool.query(
-                    queries.getDepartmentByName,
+                    psqlQuery.getDepartmentByName,
                     [department_name],
                     (error, results) => {
                       if (error) {
@@ -73,9 +74,9 @@ const createDepartment = (request, response) => {
 };
 
 const getDepartments = (request, response) => {
-  pool.query(queries.getDepartments, (error, results) => {
+  pool.query(psqlQuery.getDepartments, (error, results) => {
     if (error) {
-      console.error(error);
+      console.error(`Get department error: ${error}`);
       return response.status(500).json({ message: "Internal server error." });
     }
     // If data is available
@@ -94,7 +95,7 @@ const getDepartments = (request, response) => {
 
 const getDepartmentByID = (request, response) => {
   const departmentID = request.params.id.toUpperCase();
-  pool.query(queries.getDepartmentByID, [departmentID], (error, results) => {
+  pool.query(psqlQuery.getDepartmentByID, [departmentID], (error, results) => {
     if (error) {
       console.error(error);
       return response.status(500).json({ message: "Internal server error." });
@@ -120,7 +121,7 @@ const updateDepartment = (request, response) => {
     let department;
     pool.query("BEGIN");
     pool.query(
-      queries.updateDepartment,
+      psqlQuery.updateDepartment,
       [
         newDepartmentID.toUpperCase(),
         department_name,
@@ -130,7 +131,7 @@ const updateDepartment = (request, response) => {
         department = results.rows[0];
       }
     );
-    pool.query(queries.updateEmployeeDepartment, [
+    pool.query(psqlQuery.updateEmployeeDepartment, [
       newDepartmentID.toUpperCase(),
       oldDepartmentID.toUpperCase(),
     ]);
@@ -150,11 +151,11 @@ const deleteDepartment = (request, response) => {
   try {
     let department;
     pool.query("BEGIN");
-    pool.query(queries.deleteEmployeeInDepartment, [
+    pool.query(psqlQuery.deleteEmployeeInDepartment, [
       department_id.toUpperCase(),
     ]);
     pool.query(
-      queries.deleteDepartment,
+      psqlQuery.deleteDepartment,
       [department_id.toUpperCase()],
       (error, results) => {
         department = results.rows[0];

@@ -1,20 +1,21 @@
-const queries = require("../utils/queries/queries.js");
-const { pool } = require("../config/config.js");
+const psqlQuery = require("../services/psql/queries.js");
+const pool = require("../config/db.js");
 const { GeneralLeaveQuotaModel } = require("../models/models.js");
 
 const getLeaveCount = async (request, response) => {
   try {
     const leaveCountQuery = {
-      text: queries.getLeaveCount,
+      text: psqlQuery.getLeaveCount,
       values: [request.employeeId],
     };
     const leaveCountResult = await pool.query(leaveCountQuery);
     const leaveTypeArray = leaveCountResult.rows;
 
     if (leaveTypeArray.length > 0) {
-      const data = leaveTypeArray.map(
-        (leaveType) => new GeneralLeaveQuotaModel({ leaveType })
-      );
+      const data = leaveTypeArray.map((leaveType) => {
+        const leaveObject = new GeneralLeaveQuotaModel(leaveType);
+        return leaveObject;
+      });
 
       return response.status(200).json({ data: data });
     } else {

@@ -1,24 +1,24 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+
+const pool = require("../config/db.js");
 const models = require("../models/models.js");
-const queries = require("../utils/queries/queries.js");
+const psqlCrud = require("../services/psql/crud.js");
+const psqlQuery = require("../services/psql/queries.js");
+const psqlValidate = require("../services/psql/validations.js");
+const redisQuery = require("../services/redis/redisQueries.js");
 const tokens = require("../utils/tokens/tokens.js");
-const { pool, redis } = require("../config/config.js");
-const { makeTransaction } = require("../utils/transactions/transactions.js");
-const {
-  checkIfEmailExists,
-  checkIfNricExists,
-} = require("../utils/validations/validations.js");
 
 const loginAccount = async (request, response) => {
   const { email, password } = request.body;
   try {
     const accountExistsQuery = {
-      text: queries.getEmployeeByEmail,
+      text: psqlQuery.getEmployeeByEmail,
       values: [email],
     };
     const accountExistsResult = await pool.query(accountExistsQuery);
 
+    // Check if account exists
     if (accountExistsResult.rows.length > 0) {
       const employee = new models.EmployeeModel(accountExistsResult.rows[0]);
       const isValidPassword = await bcrypt.compare(
@@ -27,6 +27,25 @@ const loginAccount = async (request, response) => {
       );
 
       if (isValidPassword) {
+        // If user is currently online
+        if (employee.isLoggedIn) {
+          // Blacklist previous session token that may still active
+          const activeToken = await redisQuery.getActiveToken(
+            employee.employeeId
+          );
+          const decodedToken = jwt.decode(activeToken);
+          const tokenExpiration = decodedToken.exp;
+          await redisQuery.blacklistToken(
+            employee.employeeId,
+            activeToken,
+            tokenExpiration
+          );
+        }
+
+        // Update client's last login
+        await psqlCrud.updateLastLogin(employee.employeeId);
+
+        // Generate tokens
         const accessToken = tokens.createAccessToken(
           employee.email,
           employee.employeeId,
@@ -41,13 +60,14 @@ const loginAccount = async (request, response) => {
         // Save refresh token on client side
         tokens.sendRefreshToken(response, refreshToken);
 
-        // Save refresh token on Redis
-        await redis.set(`${employee.employeeId}:RT`, refreshToken);
+        // Save access and refresh tokens on Redis
+        await redisQuery.saveActiveToken(employee.employeeId, accessToken);
+        await redisQuery.saveRefreshToken(employee.employeeId, refreshToken);
 
         return response.status(200).json({
+          data: employee,
           message: "Authentication successful.",
           token: accessToken,
-          data: employee,
         });
       } else {
         return response.status(401).json({ error: "Invalid password." });
@@ -58,7 +78,8 @@ const loginAccount = async (request, response) => {
         .json({ error: "Email does not exist. Please contact admin." });
     }
   } catch (error) {
-    return response.status(500).json({ message: `${error.message}` });
+    console.error(`Login error: ${error.message}`);
+    return response.status(500).json({ message: "Internal server error." });
   }
 };
 
@@ -66,7 +87,7 @@ const logoutAccount = async (request, response) => {
   // Clear refresh token on the client side
   response.clearCookie("hrgenie", { path: "/refresh_token" });
 
-  // Revoke access token
+  // Revoke current access token
   const authorization = request.headers["authorization"];
   const accessToken = authorization ? authorization.split(" ")[1] : null;
 
@@ -76,139 +97,65 @@ const logoutAccount = async (request, response) => {
       const tokenExpiration = decodedToken.exp;
 
       // Clear refresh token on Redis
-      await redis.del(`${request.employeeId}:RT`);
+      await redisQuery.deleteRefreshToken(request.employeeId);
 
       // Blacklist access token on Redis
-      await redis.set(
-        `${request.employeeId}:AT`,
+      await redisQuery.blacklistToken(
+        request.employeeId,
         accessToken,
-        "EXAT",
         tokenExpiration
       );
 
       return response
         .status(200)
-        .json({ message: "Token revocation successful." });
+        .json({ message: "Token revoked successfully." });
     } catch (error) {
-      return response.status(500).json({ error: `${error.message}` });
+      console.error(`Logout error: ${error.message}`);
+      return response.status(500).json({ error: "Internal server error" });
     }
   }
 };
 
 const registerNewEmployee = async (request, response) => {
   let employee = new models.EmployeeModel(request.body);
-  
+
   try {
-    // Check if email exists
-    const [emailStatusCode, emailErrorMessage] = await checkIfEmailExists(
-      employee.email
-    );
-    if (emailStatusCode && emailErrorMessage) {
+    const isEmailExists = await psqlValidate.checkIfEmailExists(employee.email);
+    if (isEmailExists) {
       return response
-        .status(emailStatusCode)
-        .json({ error: emailErrorMessage });
+        .status(409)
+        .json({ error: "Email is already registered." });
     }
 
-    // Check if NRIC exists
-    const [nricStatusCode, nricErrorMessage] = await checkIfNricExists(
-      employee.nric
-    );
-    if (nricStatusCode && nricErrorMessage) {
-      return response.status(nricStatusCode).json({ error: nricErrorMessage });
+    const isNricExists = await psqlValidate.checkIfNricExists(employee.nric);
+    if (isNricExists) {
+      return response
+        .status(409)
+        .json({ error: "NRIC is already registered." });
     }
 
-    try {
-      // Register new account
-      const registerEmployeeQuery = {
-        text: queries.registerNewEmployee,
-        values: [
-          employee.departmentId,
-          employee.employeeRole,
-          employee.firstName,
-          employee.lastName,
-          employee.gender,
-          employee.email,
-          employee.position,
-          employee.phone,
-          employee.nric,
-          employee.isMarried,
-          employee.joinedDate,
-          await employee.encryptPassword(),
-        ],
-      };
+    const newEmployee = await psqlCrud.registerEmployee(employee);
 
-      const registerEmployeeResult = await pool.query(registerEmployeeQuery);
-      employee = new models.EmployeeModel(registerEmployeeResult.rows[0]);
-    } catch (error) {
-      return response.status(500).json({ error: `${error.message}` });
-    }
+    const annualLeave = new models.AnnualLeaveQuotaModel(newEmployee);
+    const medicalLeave = new models.MedicalLeaveQuotaModel(newEmployee);
+    const parentalLeave = new models.ParentalLeaveQuotaModel(newEmployee);
+    const emergencyLeave = new models.EmergencyLeaveQuotaModel(newEmployee);
+    const unpaidLeave = new models.UnpaidLeaveQuotaModel(newEmployee);
 
-    const annualLeave = new models.AnnualLeaveQuotaModel(employee);
-    const medicalLeave = new models.MedicalLeaveQuotaModel(employee);
-    const parentalLeave = new models.ParentalLeaveQuotaModel(employee);
-    const emergencyLeave = new models.EmergencyLeaveQuotaModel(employee);
-    const unpaidLeave = new models.UnpaidLeaveQuotaModel(employee);
-    
-    // Allocate leave quota
-    const allocateAnnualLeaveQuery = {
-      text: queries.allocateLeave,
-      values: [
-        annualLeave.employeeId,
-        annualLeave.leaveTypeId,
-        annualLeave.quota,
-      ],
-    };
-    const allocateMedicalLeaveQuery = {
-      text: queries.allocateLeave,
-      values: [
-        medicalLeave.employeeId,
-        medicalLeave.leaveTypeId,
-        medicalLeave.quota,
-      ],
-    };
-    const allocateParentalLeaveQuery = {
-      text: queries.allocateLeave,
-      values: [
-        parentalLeave.employeeId,
-        parentalLeave.leaveTypeId,
-        parentalLeave.quota,
-      ],
-    };
-    const allocateEmergencyLeaveQuery = {
-      text: queries.allocateLeave,
-      values: [
-        emergencyLeave.employeeId,
-        emergencyLeave.leaveTypeId,
-        emergencyLeave.quota,
-      ],
-    };
-    const allocateUnpaidLeaveQuery = {
-      text: queries.allocateLeave,
-      values: [
-        unpaidLeave.employeeId,
-        unpaidLeave.leaveTypeId,
-        unpaidLeave.quota,
-      ],
-    };
-
-    // Perform transaction
-    const { statusCode, successMessage, errorMessage } = await makeTransaction(
-      [
-        allocateAnnualLeaveQuery,
-        allocateMedicalLeaveQuery,
-        allocateParentalLeaveQuery,
-        allocateEmergencyLeaveQuery,
-        allocateUnpaidLeaveQuery,
-      ],
-      201,
-      "Account successfully registered."
+    await psqlCrud.allocateLeaves(
+      annualLeave,
+      medicalLeave,
+      parentalLeave,
+      emergencyLeave,
+      unpaidLeave
     );
 
     return response
-      .status(statusCode)
-      .json({ message: successMessage, error: errorMessage });
+      .status(201)
+      .json({ message: "Account successfully registered." });
   } catch (error) {
-    return response.status(500).json({ error: `${error.message}` });
+    console.error(`registerNewEmployee error: ${error.message}`);
+    return response.status(500).json({ error: "Internal server error." });
   }
 };
 
@@ -222,31 +169,21 @@ const renewRefreshToken = async (request, response) => {
 
   try {
     payload = jwt.verify(currentRefreshToken, process.env.REFRESH_TOKEN_SECRET);
-  } catch (error) {
-    if (error instanceof jwt.NotBeforeError) {
-      return response
-        .status(403)
-        .json({ error: "Refresh token failed. Access token is still valid." });
-    } else {
+
+    // Check is account exists
+    const isAccountExists = await psqlValidate.checkIfEmailExists(
+      payload.email
+    );
+    if (!isAccountExists) {
+      return response.status(404).json({ error: "User not found." });
+    }
+
+    const refreshToken = await redisQuery.getRefreshToken(payload.employeeId);
+    if (refreshToken !== currentRefreshToken) {
       return response.status(401).json({ error: "Authentication failed." });
     }
-  }
 
-  const employeeExistsQuery = {
-    text: queries.getEmployeeByEmail,
-    values: [payload.email],
-  };
-  const employeeExistsResult = await pool.query(employeeExistsQuery);
-
-  if (employeeExistsResult.rows.length === 0) {
-    return response.status(404).json({ error: "User not found." });
-  }
-
-  const refreshToken = await redis.get(`${payload.employeeId}:RT`);
-
-  if (refreshToken !== currentRefreshToken) {
-    return response.status(401).json({ error: "Authentication failed." });
-  } else {
+    // Generate tokens
     const newAccessToken = tokens.createAccessToken(
       payload.email,
       payload.employeeId,
@@ -261,12 +198,23 @@ const renewRefreshToken = async (request, response) => {
     // Save refresh token on client side
     tokens.sendRefreshToken(response, newRefreshToken);
 
-    // Save refresh token on Redis
-    await redis.set(`${payload.employeeId}:RT`, newRefreshToken);
+    // Save access and refresh tokens on Redis
+    await redisQuery.saveActiveToken(payload.employeeId, newAccessToken);
+    await redisQuery.saveRefreshToken(payload.employeeId, newRefreshToken);
 
-    return response
-      .status(200)
-      .json({ message: "Authentication successful.", token: newAccessToken });
+    return response.status(200).json({
+      message: "Token successfully refreshed.",
+      token: newAccessToken,
+    });
+  } catch (error) {
+    if (error instanceof jwt.NotBeforeError) {
+      return response
+        .status(403)
+        .json({ error: "Refresh token failed. Access token is still valid." });
+    } else {
+      console.error(`renewRefreshToken error: ${error.message}`);
+      return response.status(401).json({ error: "Authentication failed." });
+    }
   }
 };
 
