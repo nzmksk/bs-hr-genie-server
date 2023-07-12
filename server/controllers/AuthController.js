@@ -9,6 +9,59 @@ const psqlValidate = require("../services/psql/validations.js");
 const redisQuery = require("../services/redis/redisQueries.js");
 const tokens = require("../utils/tokens/tokens.js");
 
+const firstTimeLogin = async (request, response) => {
+  const { password: plainPassword } = request.body;
+  try {
+    const accountExistsQuery = {
+      text: psqlQuery.getEmployeeById,
+      values: [request.employeeId],
+    };
+    const accountExistsResult = await pool.query(accountExistsQuery);
+
+    // Check if account exists
+    if (accountExistsResult.rows.length > 0) {
+      const employee = new models.EmployeeModel(accountExistsResult.rows[0]);
+      await employee.encryptPassword(plainPassword);
+
+      // Update password
+      const query = {
+        text: psqlQuery.changePassword,
+        values: [employee.hashedPassword, employee.employeeId],
+      };
+      await pool.query(query);
+      await psqlCrud.updateStatusToOffline(request.employeeId);
+
+      // Blacklist previous session token that may still active
+      const activeToken = await redisQuery.getActiveToken(employee.employeeId);
+      const decodedToken = jwt.decode(activeToken);
+      const tokenExpiration = decodedToken.exp;
+      await redisQuery.blacklistToken(
+        employee.employeeId,
+        activeToken,
+        tokenExpiration
+      );
+
+      // Clear refresh token on the client side
+      response.clearCookie("hrgenie", { path: "/refresh_token" });
+
+      // Clear active and refresh tokens on Redis
+      await redisQuery.deleteActiveToken(request.employeeId);
+      await redisQuery.deleteRefreshToken(request.employeeId);
+
+      return response.status(200).json({
+        message: "Password updated. Please login with the new password.",
+      });
+    } else {
+      return response.status(404).json({
+        error: "Account does not exist.",
+      });
+    }
+  } catch (error) {
+    console.error(`firstTimeLogin error: ${error.message}`);
+    return response.status(500).json({ message: "Internal server error." });
+  }
+};
+
 const loginAccount = async (request, response) => {
   const { email, password } = request.body;
   try {
@@ -43,7 +96,7 @@ const loginAccount = async (request, response) => {
         }
 
         // Update client's last login
-        await psqlCrud.updateLastLogin(employee.employeeId);
+        await psqlCrud.updateStatusToOnline(employee.employeeId);
 
         // Generate tokens
         const accessToken = tokens.createAccessToken(
@@ -78,7 +131,7 @@ const loginAccount = async (request, response) => {
         .json({ error: "Email does not exist. Please contact admin." });
     }
   } catch (error) {
-    console.error(`Login error: ${error.message}`);
+    console.error(`loginAccount error: ${error.message}`);
     return response.status(500).json({ message: "Internal server error." });
   }
 };
@@ -96,7 +149,8 @@ const logoutAccount = async (request, response) => {
       const decodedToken = jwt.decode(accessToken);
       const tokenExpiration = decodedToken.exp;
 
-      // Clear refresh token on Redis
+      // Clear active and refresh tokens on Redis
+      await redisQuery.deleteActiveToken(request.employeeId);
       await redisQuery.deleteRefreshToken(request.employeeId);
 
       // Blacklist access token on Redis
@@ -106,11 +160,13 @@ const logoutAccount = async (request, response) => {
         tokenExpiration
       );
 
+      await psqlCrud.updateStatusToOffline(request.employeeId);
+
       return response
         .status(200)
         .json({ message: "Token revoked successfully." });
     } catch (error) {
-      console.error(`Logout error: ${error.message}`);
+      console.error(`logoutAccount error: ${error.message}`);
       return response.status(500).json({ error: "Internal server error" });
     }
   }
@@ -219,6 +275,7 @@ const renewRefreshToken = async (request, response) => {
 };
 
 module.exports = {
+  firstTimeLogin,
   loginAccount,
   logoutAccount,
   registerNewEmployee,

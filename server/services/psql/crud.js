@@ -41,7 +41,7 @@ const registerEmployee = async (employeeObj) => {
       employeeObj.nric,
       employeeObj.isMarried,
       employeeObj.joinedDate,
-      await employeeObj.encryptPassword(),
+      await employeeObj.encryptPassword(employeeObj.nric),
     ],
   };
 
@@ -60,17 +60,35 @@ const registerEmployee = async (employeeObj) => {
   }
 };
 
-const updateLastLogin = async (employeeId) => {
+const updateStatusToOffline = async (employeeId) => {
   const query = {
-    text: psqlQuery.updateLastLogin,
+    text: psqlQuery.updateStatusToOffline,
     values: [employeeId],
   };
-  
+
   try {
     await pool.query(query);
   } catch (error) {
-    throw new Error(`crud.updateLastLogin error: ${error.message}`);
+    throw new Error(`crud.updateStatusToOffline error: ${error.message}`);
   }
 };
 
-module.exports = { allocateLeaves, registerEmployee, updateLastLogin };
+const updateStatusToOnline = async (employeeId) => {
+  const query = {
+    text: psqlQuery.updateStatusToOnline,
+    values: [employeeId],
+  };
+
+  try {
+    await pool.query(query);
+  } catch (error) {
+    throw new Error(`crud.updateStatusToOnline error: ${error.message}`);
+  }
+};
+
+module.exports = {
+  allocateLeaves,
+  registerEmployee,
+  updateStatusToOffline,
+  updateStatusToOnline,
+};

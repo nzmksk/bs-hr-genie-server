@@ -51,9 +51,9 @@ class EmployeeModel {
     return cleanedEmail;
   };
 
-  encryptPassword = async () => {
+  encryptPassword = async (password) => {
     const saltRounds = 10;
-    this.hashedPassword = await bcrypt.hash(this.nric, saltRounds);
+    this.hashedPassword = await bcrypt.hash(password, saltRounds);
 
     return this.hashedPassword;
   };

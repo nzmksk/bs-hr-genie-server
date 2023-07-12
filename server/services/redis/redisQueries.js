@@ -3,11 +3,21 @@ const redis = require("../../config/redis.js");
 const blacklistToken = async (employeeId, accessToken, expiryTime) => {
   try {
     const currentTime = new Date();
-    await redis.set(`${employeeId}:BT:${currentTime}`, accessToken, {
-      EXAT: expiryTime,
-    });
+    if (expiryTime > currentTime) {
+      await redis.set(`${employeeId}:BT:${currentTime}`, accessToken, {
+        EXAT: expiryTime,
+      });
+    }
   } catch (error) {
     throw new Error(`redis.blacklistToken error: ${error.message}`);
+  }
+};
+
+const deleteActiveToken = async (employeeId) => {
+  try {
+    await redis.del(`${employeeId}:AT`);
+  } catch (error) {
+    throw new Error(`redis.deleteRefreshToken error: ${error.message}`);
   }
 };
 
@@ -44,10 +54,11 @@ const isTokenBlacklisted = async (employeeId, accessToken) => {
     const patternOptions = ["MATCH", `${employeeId}:BT*`];
 
     for await (const key of redis.scanIterator(0, patternOptions)) {
-      const blacklistedToken = await redis.get(key);
-      blacklistArray.push(blacklistedToken);
+      if (key.startsWith(`${employeeId}:BT`)) {
+        const blacklistedToken = await redis.get(key);
+        blacklistArray.push(blacklistedToken);
+      }
     }
-
     return blacklistArray.includes(accessToken);
   } catch (error) {
     throw new Error(`redis.isTokenBlacklisted error: ${error.message}`);
@@ -72,6 +83,7 @@ const saveRefreshToken = async (employeeId, refreshToken) => {
 
 module.exports = {
   blacklistToken,
+  deleteActiveToken,
   deleteRefreshToken,
   getActiveToken,
   getRefreshToken,
