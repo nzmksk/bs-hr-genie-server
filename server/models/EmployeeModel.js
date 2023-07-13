@@ -11,6 +11,7 @@ class EmployeeModel {
     email,
     position,
     hashed_password,
+    password_updated,
     phone,
     nric,
     is_married,
@@ -29,6 +30,7 @@ class EmployeeModel {
     this.email = email;
     this.position = position;
     this.hashedPassword = hashed_password;
+    this.isPasswordUpdated = password_updated;
     this.phone = phone;
     this.nric = nric;
     this.isMarried = is_married;

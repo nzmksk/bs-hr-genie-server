@@ -25,7 +25,7 @@ const firstTimeLogin = async (request, response) => {
 
       // Update password
       const query = {
-        text: psqlQuery.changePassword,
+        text: psqlQuery.changePasswordFirstTime,
         values: [employee.hashedPassword, employee.employeeId],
       };
       await pool.query(query);
@@ -178,7 +178,6 @@ const logoutAccount = async (request, response) => {
     }
   }
 };
-
 
 const renewRefreshToken = async (request, response) => {
   const currentRefreshToken = request.cookies.hrgenie;

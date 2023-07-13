@@ -26,8 +26,9 @@ SET department_id = CASE
     END`;
 
 // EMPLOYEE
-const changePassword = `UPDATE employee
-SET hashed_password = $1
+const changePasswordFirstTime = `UPDATE employee
+SET hashed_password = $1,
+    password_updated = TRUE
 WHERE employee_id = $2`;
 const deleteEmployee = `DELETE FROM employee
 WHERE employee_id = $1
@@ -139,7 +140,7 @@ module.exports = {
   updateEmployeeDepartment,
 
   // Employee
-  changePassword,
+  changePasswordFirstTime,
   deleteEmployee,
   getEmployees,
   getEmployeeByEmail,
