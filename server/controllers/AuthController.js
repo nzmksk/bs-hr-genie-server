@@ -58,7 +58,7 @@ const firstTimeLogin = async (request, response) => {
     }
   } catch (error) {
     console.error(`firstTimeLogin error: ${error.message}`);
-    return response.status(500).json({ message: "Internal server error." });
+    return response.status(500).json({ error: "Internal server error." });
   }
 };
 
@@ -76,7 +76,7 @@ const loginAccount = async (request, response) => {
       const employee = new models.EmployeeModel(accountExistsResult.rows[0]);
       if (employee.employeeRole === "resigned") {
         return response.status(401).json({
-          message:
+          error:
             "Account is dormant. Please contact admin for further assistance.",
         });
       }
@@ -139,7 +139,7 @@ const loginAccount = async (request, response) => {
     }
   } catch (error) {
     console.error(`loginAccount error: ${error.message}`);
-    return response.status(500).json({ message: "Internal server error." });
+    return response.status(500).json({ error: "Internal server error." });
   }
 };
 
@@ -174,7 +174,7 @@ const logoutAccount = async (request, response) => {
         .json({ message: "Token revoked successfully." });
     } catch (error) {
       console.error(`logoutAccount error: ${error.message}`);
-      return response.status(500).json({ error: "Internal server error" });
+      return response.status(500).json({ error: "Internal server error." });
     }
   }
 };

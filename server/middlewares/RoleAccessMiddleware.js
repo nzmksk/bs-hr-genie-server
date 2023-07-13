@@ -4,7 +4,7 @@ const roleAccessMiddleware =
 
     return authorizedRoles.includes(role)
       ? next()
-      : response.status(403).json({ message: "Access denied." });
+      : response.status(403).json({ error: "Access denied." });
   };
 
 module.exports = roleAccessMiddleware;

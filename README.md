@@ -10,11 +10,10 @@
 
 1. [Base URL](#base-url)
 2. [Authentication](#authentication)
-3. [Endpoints](#endpoints)
    - [POST /login](#post-login)
-   - [POST /refresh_token](#post-refresh_token-protected)
-   - [POST /register](#post-register-protected)
-   - [GET /departments](#get-departments)
+   - [POST /first_login](#post-first_login-protected)
+   - [POST /refresh_token](#post-refresh_token)
+   - [POST /logout](#post-logout-protected)
 
 [Development Workflow](#development-workflow)
 
@@ -122,10 +121,15 @@ Access and refresh tokens can be obtained from the [`/login`](#post-login) or [`
      "error": "Authentication failed."
   }
   ```
+- Error: 403 Forbidden\
+  Access token is valid but the client does not have authorization over the data requested. Example response:
+  ```JSON
+  {
+     "error": "Access denied."
+  }
+  ```
 
-## Endpoints
-
-[Next: /refresh_token](#post-refresh_token-protected)
+[Next: /first_login](#post-first_login-protected)
 
 ### POST /login
 
@@ -163,33 +167,60 @@ Example request:
   ```JSON
   {
      "data": {
-        "departmentId": "HR",
-        "employeeId": "HR001",
-        "employeeRole": "employee",
-        "firstName": "John",
-        "lastName": "Doe",
-        "gender": "male",
-        "email": "example@domain.com",
-        "position": "Junior Software Engineer",
-        "hashedPassword": "<hashed_password>",
-        "phone": "0123456789",
-        "nric": "123456789012",
-        "isMarried": false,
-        "joinedDate": "1970-01-01T00:00:00.000Z",
-        "profileImage": null,
-        "createdAt": "1970-01-01T00:00:00.000Z",
-        "lastLogin": null,
-        "cleanedEmail": "example@domain.com"
-    },
-     "message": "Authentication successful.",
-     "token": "<your-access-token>"
+         "departmentId": "HR",
+         "employeeId": "HR001",
+         "employeeRole": "employee",
+         "firstName": "John",
+         "lastName": "Doe",
+         "gender": "male",
+         "email": "example@domain.com",
+         "position": "Junior Software Engineer",
+         "hashedPassword": "<hashed_password>",
+         "isPasswordUpdated": false,
+         "phone": "0123456789",
+         "nric": "123456789012",
+         "isMarried": false,
+         "joinedDate": "1970-01-01T00:00:00.000Z",
+         "profileImage": null,
+         "isLoggedIn": false,
+         "createdAt": "1970-01-01T00:00:00.000Z",
+         "lastLogin": null,
+         "cleanedEmail": "example@domain.com"
+      },
+      "message": "Authentication successful.",
+      "token": "<your-access-token>"
   }
   ```
+  You should keep both access and refresh tokens in a storage, i.e. local storage, session storage, or cookies, depending on your system requirements.\
+  \
+  If the client's request was made by a browser, the refresh token, which was sent by the server as a cookie, is saved automatically by most modern browsers. However, **if the request was made from a mobile app, you have to extract the cookie manually** by adding some codes.\
+  \
+  Here's an example in Dart:
+  ```Dart
+   final http.Response response = await http.post(
+      Uri.parse("$baseUrl$endpoint"),
+      headers: headers,
+      body: jsonEncode(body)
+   );
+
+   final rawCookie = response.headers["Set-Cookie"];
+   if (rawCookie != null) {
+      // Store the cookie (refresh token) in your desired storage
+   }
+  ```
+
 - Error: 401 Unauthorized\
   The provided credentials were invalid. Example response:
   ```JSON
   {
      "error": "Invalid password."
+  }
+  ```
+- Error: 401 Unauthorized\
+  The account was dormant due to employee's termination or resignation. Example response:
+  ```JSON
+  {
+     "error": "Account is dormant. Please contact admin for further assistance.",
   }
   ```
 - Error: 404 Not Found\
@@ -208,9 +239,66 @@ Example request:
   ```
 
 [Prev: /login](#post-login)\
-[Next: /register](#post-register-protected)
+[Next: /refresh_token](#post-refresh_token)
 
-### POST /refresh_token `[protected]`
+### POST /first_login `[protected]`
+
+This endpoint is reserved to users who are logging in for the first time to update their default password by force.
+
+**Request**\
+The request should include the following parameters in the request body:
+| Parameter | Data Type | Restrictions | Option |
+| ----------- | ----------- | ----------- | ----------- |
+| password | string | Must be 8-14 characters, including numbers, special characters, uppercase, and lowercase letters | Required |
+
+Example request:
+
+```Dart
+   final baseUrl = "http://localhost:2000";
+   final endpoint = "/first_login";
+   final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer <your-access-token>"
+   };
+   final body = {
+      "password": "@BeSquare3.0"
+   };
+
+   final http.Response response = await http.post(
+      Uri.parse("$baseUrl$endpoint"),
+      headers: headers,
+      body: jsonEncode(body)
+   );
+```
+
+**Response**
+
+- Success: 200 OK\
+  Password update was successful. The response body will contain a success message. Example response:
+  ```JSON
+  {
+     "message": "Password updated. Please login with the new password."
+  }
+  ```
+- Error: 404 Not Found\
+  Account was not found. Example response:
+  ```JSON
+  {
+     "error": "Account does not exist."
+  }
+  ```
+- Error: 500 Internal Server Error\
+  The server encountered an unexpected condition that prevented it from fulfilling the request. Example response:
+  ```JSON
+  {
+     "error": "Internal server error."
+  }
+  ```
+
+[Prev: /first_login](#post-first_login-protected)\
+[Next: /logout](#post-logout-protected)
+
+### POST /refresh_token
 
 This endpoint is used to renew client's access token using valid refresh token. Access token has validity of 15 minutes while refresh token has validity of 6 hours.
 
@@ -220,15 +308,22 @@ This endpoint is used to renew client's access token using valid refresh token. 
   Token renewal was successful. The response body will contain a success message and an access token. Example response:
   ```JSON
   {
-     "message": "Authentication successful.",
+     "message": "Token successfully refreshed.",
      "token": "<your-access-token>"
   }
   ```
 - Error: 401 Unauthorized\
-  Refresh token had expired. Example response:
+  Cookie was not found or refresh token had expired. Example response:
   ```JSON
   {
      "error": "Authentication failed."
+  }
+  ```
+- Error: 403 Forbidden\
+  Refresh token failed as access token was still valid. Example response:
+  ```JSON
+  {
+     "error": "Refresh token failed. Access token is still valid."
   }
   ```
 - Error: 404 Not Found\
@@ -239,10 +334,46 @@ This endpoint is used to renew client's access token using valid refresh token. 
   }
   ```
 
-[Prev: /refresh_token](#post-refresh_token-protected)\
-[Next: /logout](#post-logout-protected)
+[Prev: /refresh_token](#post-refresh_token)\
+[Next: /employees/register](#post-register-protected)
 
-### POST /register `[protected]`
+### POST /logout `[protected]`
+
+This endpoint is used to revoke client's access and refresh tokens, effectively preventing the tokens from being misused by other parties.\
+Example request in Dart:
+
+```Dart
+   final baseUrl = "http://localhost:2000";
+   final endpoint = "/logout";
+   final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "<your-access-token>",
+   };
+
+   final http.Response response = await http.post(
+      Uri.parse("$baseUrl$endpoint"),
+      headers: headers
+   );
+```
+
+**Response**
+
+- Success: 200 OK\
+  Tokens revoked and current user's session was terminated successfully. Example response:
+  ```JSON
+  {
+     "message": "Token revoked successfully."
+  }
+  ```
+- Error: 500 Internal Server Error\
+  The server encountered an unexpected condition that prevented it from fulfilling the request. Example response:
+  ```JSON
+  {
+     "error": "Internal server error."
+  }
+  ```
+
+<!-- ### POST /register `[protected]`
 
 This endpoint is used for account registration.
 
@@ -316,42 +447,6 @@ Example request in Dart:
 
 [Prev: /register](#post-register-protected)
 
-### POST /logout `[protected]`
-
-This endpoint is used to revoke client's access and refresh tokens, effectively preventing the client from making any further requests to protected endpoints.\
-Example request in Dart:
-
-```Dart
-   final baseUrl = "http://localhost:2000";
-   final endpoint = "/logout";
-   final headers = {
-      "Content-Type": "application/json",
-      "Authorization": "<your-jwt-token>",
-   };
-
-   final http.Response response = await http.post(
-      Uri.parse(baseUrl + endpoint),
-      headers: headers
-   );
-```
-
-**Response**
-
-- Success: 200 OK\
-  Token revocation was successful. Example response:
-  ```JSON
-  {
-     "message": "Token revocation successful."
-  }
-  ```
-- Error: 500 Internal Server Error\
-  The server encountered an unexpected condition that prevented it from fulfilling the request. Example response:
-  ```JSON
-  {
-     "error": "Internal server error."
-  }
-  ```
-
 ### GET /departments
 
 This endpoint is used to retrieve a list of departments.
@@ -382,7 +477,7 @@ No request parameters are required.\
   {
      "message": "Internal server error."
   }
-  ```
+  ``` -->
 
 # Development Workflow
 
