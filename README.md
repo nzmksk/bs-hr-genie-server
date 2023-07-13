@@ -147,7 +147,7 @@ Example request:
 ```Dart
    final baseUrl = "http://localhost:2000";
    final endpoint = "/login";
-   final headers = {"Content-Type": "application/json"};
+   final headers = { "Content-Type": "application/json" };
    final body = {
       "email": "example@domain.com",
       "password": "123456789012",
@@ -156,7 +156,7 @@ Example request:
    final http.Response response = await http.post(
       Uri.parse("$baseUrl$endpoint"),
       headers: headers,
-      body: jsonEncode(body)
+      body: jsonEncode(body),
    );
 ```
 
@@ -164,6 +164,7 @@ Example request:
 
 - Success: 200 OK\
   The login was successful. The response body will contain the user's data, a success message, and an access token. Example response:
+
   ```JSON
   {
      "data": {
@@ -191,16 +192,18 @@ Example request:
       "token": "<your-access-token>"
   }
   ```
+
   You should keep both access and refresh tokens in a storage, i.e. local storage, session storage, or cookies, depending on your system requirements.\
   \
   If the client's request was made by a browser, the refresh token, which was sent by the server as a cookie, is saved automatically by most modern browsers. However, **if the request was made from a mobile app, you have to extract the cookie manually** by adding some codes.\
   \
   Here's an example in Dart:
+
   ```Dart
    final http.Response response = await http.post(
       Uri.parse("$baseUrl$endpoint"),
       headers: headers,
-      body: jsonEncode(body)
+      body: jsonEncode(body),
    );
 
    final rawCookie = response.headers["Set-Cookie"];
@@ -258,16 +261,14 @@ Example request:
    final endpoint = "/first_login";
    final headers = {
       "Content-Type": "application/json",
-      "Authorization": "Bearer <your-access-token>"
+      "Authorization": "Bearer <your-access-token>",
    };
-   final body = {
-      "password": "@BeSquare3.0"
-   };
+   final body = { "password": "@BeSquare3.0" };
 
    final http.Response response = await http.post(
       Uri.parse("$baseUrl$endpoint"),
       headers: headers,
-      body: jsonEncode(body)
+      body: jsonEncode(body),
    );
 ```
 
@@ -300,7 +301,23 @@ Example request:
 
 ### POST /refresh_token
 
-This endpoint is used to renew client's access token using valid refresh token. Access token has validity of 15 minutes while refresh token has validity of 6 hours.
+This endpoint is used to renew client's access token using valid refresh token. Access token has a validity of 15 minutes while refresh token has a validity of 6 hours.\
+\
+Example request:
+
+```Dart
+   final baseUrl = "http://localhost:2000";
+   final endpoint = "/refresh_token";
+   final headers = {
+      "Content-Type": "application/json",
+      "Cookie": "<your-stored-refresh-token>", // This line is only required for mobile clients
+   };
+
+   final http.Response response = await http.post(
+      Uri.parse("$baseUrl$endpoint"),
+      headers: headers,
+   );
+```
 
 **Response**
 
@@ -334,8 +351,7 @@ This endpoint is used to renew client's access token using valid refresh token. 
   }
   ```
 
-[Prev: /refresh_token](#post-refresh_token)\
-[Next: /employees/register](#post-register-protected)
+[Prev: /refresh_token](#post-refresh_token)
 
 ### POST /logout `[protected]`
 
