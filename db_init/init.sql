@@ -145,7 +145,8 @@ INSERT INTO employee (
     nric,
     is_married,
     joined_date,
-    created_at
+    created_at,
+    last_login
 )
 VALUES (
     'HR',
@@ -160,6 +161,7 @@ VALUES (
     '123456789012',
     'false',
     '1970-01-01',
+    '1970-01-01 00:00:00',
     '1970-01-01 00:00:00'
 ),
 (
@@ -175,7 +177,8 @@ VALUES (
     '123456789013',
     'true',
     '2023-03-06',
-    '1970-01-01 00:00:00'
+    '1970-01-01 00:00:00',
+    null
 ),
 (
     'HR',
@@ -190,7 +193,8 @@ VALUES (
     '123456789014',
     'false',
     '2020-03-06',
-    '1970-01-01 00:00:00'
+    '1970-01-01 00:00:00',
+    null
 );
 
 INSERT INTO leave_category (leave_type_name)

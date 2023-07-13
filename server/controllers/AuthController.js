@@ -74,6 +74,13 @@ const loginAccount = async (request, response) => {
     // Check if account exists
     if (accountExistsResult.rows.length > 0) {
       const employee = new models.EmployeeModel(accountExistsResult.rows[0]);
+      if (employee.employeeRole === "resigned") {
+        return response.status(401).json({
+          message:
+            "Account is dormant. Please contact admin for further assistance.",
+        });
+      }
+
       const isValidPassword = await bcrypt.compare(
         password,
         employee.hashedPassword
@@ -172,48 +179,6 @@ const logoutAccount = async (request, response) => {
   }
 };
 
-const registerNewEmployee = async (request, response) => {
-  let employee = new models.EmployeeModel(request.body);
-
-  try {
-    const isEmailExists = await psqlValidate.checkIfEmailExists(employee.email);
-    if (isEmailExists) {
-      return response
-        .status(409)
-        .json({ error: "Email is already registered." });
-    }
-
-    const isNricExists = await psqlValidate.checkIfNricExists(employee.nric);
-    if (isNricExists) {
-      return response
-        .status(409)
-        .json({ error: "NRIC is already registered." });
-    }
-
-    const newEmployee = await psqlCrud.registerEmployee(employee);
-
-    const annualLeave = new models.AnnualLeaveQuotaModel(newEmployee);
-    const medicalLeave = new models.MedicalLeaveQuotaModel(newEmployee);
-    const parentalLeave = new models.ParentalLeaveQuotaModel(newEmployee);
-    const emergencyLeave = new models.EmergencyLeaveQuotaModel(newEmployee);
-    const unpaidLeave = new models.UnpaidLeaveQuotaModel(newEmployee);
-
-    await psqlCrud.allocateLeaves(
-      annualLeave,
-      medicalLeave,
-      parentalLeave,
-      emergencyLeave,
-      unpaidLeave
-    );
-
-    return response
-      .status(201)
-      .json({ message: "Account successfully registered." });
-  } catch (error) {
-    console.error(`registerNewEmployee error: ${error.message}`);
-    return response.status(500).json({ error: "Internal server error." });
-  }
-};
 
 const renewRefreshToken = async (request, response) => {
   const currentRefreshToken = request.cookies.hrgenie;
@@ -278,6 +243,5 @@ module.exports = {
   firstTimeLogin,
   loginAccount,
   logoutAccount,
-  registerNewEmployee,
   renewRefreshToken,
 };

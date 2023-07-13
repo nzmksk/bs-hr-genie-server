@@ -1,5 +1,8 @@
-const psqlQuery = require("../services/psql/queries.js");
 const pool = require("../config/db.js");
+const { EmployeeModel } = require("../models/models.js");
+const psqlCrud = require("../services/psql/crud.js");
+const psqlQuery = require("../services/psql/queries.js");
+const psqlValidate = require("../services/psql/validations.js");
 
 const getEmployees = (request, response) => {
   pool.query(psqlQuery.getEmployees, (error, results) => {
@@ -28,6 +31,49 @@ const getEmployeeById = (request, response) => {
       }
     }
   );
+};
+
+const registerNewEmployee = async (request, response) => {
+  let employee = new EmployeeModel(request.body);
+
+  try {
+    const isEmailExists = await psqlValidate.checkIfEmailExists(employee.email);
+    if (isEmailExists) {
+      return response
+        .status(409)
+        .json({ error: "Email is already registered." });
+    }
+
+    const isNricExists = await psqlValidate.checkIfNricExists(employee.nric);
+    if (isNricExists) {
+      return response
+        .status(409)
+        .json({ error: "NRIC is already registered." });
+    }
+
+    const newEmployee = await psqlCrud.registerEmployee(employee);
+
+    const annualLeave = new models.AnnualLeaveQuotaModel(newEmployee);
+    const medicalLeave = new models.MedicalLeaveQuotaModel(newEmployee);
+    const parentalLeave = new models.ParentalLeaveQuotaModel(newEmployee);
+    const emergencyLeave = new models.EmergencyLeaveQuotaModel(newEmployee);
+    const unpaidLeave = new models.UnpaidLeaveQuotaModel(newEmployee);
+
+    await psqlCrud.allocateLeaves(
+      annualLeave,
+      medicalLeave,
+      parentalLeave,
+      emergencyLeave,
+      unpaidLeave
+    );
+
+    return response
+      .status(201)
+      .json({ message: "Account successfully registered." });
+  } catch (error) {
+    console.error(`registerNewEmployee error: ${error.message}`);
+    return response.status(500).json({ error: "Internal server error." });
+  }
 };
 
 const updateEmployeeDetails = (request, response) => {
@@ -101,6 +147,7 @@ const deleteEmployee = (request, response) => {
 module.exports = {
   getEmployees,
   getEmployeeById,
+  registerNewEmployee,
   updateEmployeeDetails,
   deleteEmployee,
 };

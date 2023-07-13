@@ -1,3 +1,4 @@
 const authMiddleware = require("./AuthMiddleware.js");
+const roleAccessMiddleware = require("./RoleAccessMiddleware.js");
 
-module.exports = { authMiddleware };
+module.exports = { authMiddleware, roleAccessMiddleware };
