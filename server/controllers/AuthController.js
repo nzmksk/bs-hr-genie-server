@@ -1,10 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const pool = require("../config/db.js");
-const models = require("../models/models.js");
 const psqlCrud = require("../services/psql/crud.js");
-const psqlQuery = require("../services/psql/queries.js");
 const psqlValidate = require("../services/psql/validations.js");
 const redisQuery = require("../services/redis/redisQueries.js");
 const tokens = require("../utils/tokens/tokens.js");
@@ -12,41 +9,20 @@ const tokens = require("../utils/tokens/tokens.js");
 const firstTimeLogin = async (request, response) => {
   const { password: plainPassword } = request.body;
   try {
-    const accountExistsQuery = {
-      text: psqlQuery.getEmployeeById,
-      values: [request.employeeId],
-    };
-    const accountExistsResult = await pool.query(accountExistsQuery);
+    const [accountExists, account] = await psqlValidate.checkIfEmailExists(
+      request.email
+    );
 
-    // Check if account exists
-    if (accountExistsResult.rows.length > 0) {
-      const employee = new models.EmployeeModel(accountExistsResult.rows[0]);
+    if (accountExists) {
+      const employee = account;
       await employee.encryptPassword(plainPassword);
-
-      // Update password
-      const query = {
-        text: psqlQuery.changePasswordFirstTime,
-        values: [employee.hashedPassword, employee.employeeId],
-      };
-      await pool.query(query);
-      await psqlCrud.updateStatusToOffline(request.employeeId);
-
-      // Blacklist previous session token that may still active
-      const activeToken = await redisQuery.getActiveToken(employee.employeeId);
-      const decodedToken = jwt.decode(activeToken);
-      const tokenExpiration = decodedToken.exp;
-      await redisQuery.blacklistToken(
-        employee.employeeId,
-        activeToken,
-        tokenExpiration
+      await psqlCrud.updatePasswordFirstTime(
+        employee.hashedPassword,
+        employee.employeeId
       );
-
-      // Clear refresh token on the client side
-      response.clearCookie("hrgenie", { path: "/refresh_token" });
-
-      // Clear active and refresh tokens on Redis
-      await redisQuery.deleteActiveToken(request.employeeId);
-      await redisQuery.deleteRefreshToken(request.employeeId);
+      tokens.clearCookie(response);
+      await redisQuery.blacklistToken(employee.employeeId);
+      await redisQuery.deleteTokens(employee.employeeId);
 
       return response.status(200).json({
         message: "Password updated. Please login with the new password.",
@@ -65,15 +41,12 @@ const firstTimeLogin = async (request, response) => {
 const loginAccount = async (request, response) => {
   const { email, password } = request.body;
   try {
-    const accountExistsQuery = {
-      text: psqlQuery.getEmployeeByEmail,
-      values: [email],
-    };
-    const accountExistsResult = await pool.query(accountExistsQuery);
+    const [accountExists, account] = await psqlValidate.checkIfEmailExists(
+      email
+    );
 
-    // Check if account exists
-    if (accountExistsResult.rows.length > 0) {
-      const employee = new models.EmployeeModel(accountExistsResult.rows[0]);
+    if (accountExists) {
+      const employee = account;
       if (employee.employeeRole === "resigned") {
         return response.status(401).json({
           error:
@@ -87,42 +60,23 @@ const loginAccount = async (request, response) => {
       );
 
       if (isValidPassword) {
-        // If user is currently online
         if (employee.isLoggedIn) {
-          // Blacklist previous session token that may still active
-          const activeToken = await redisQuery.getActiveToken(
-            employee.employeeId
-          );
-          const decodedToken = jwt.decode(activeToken);
-          const tokenExpiration = decodedToken.exp;
-          await redisQuery.blacklistToken(
-            employee.employeeId,
-            activeToken,
-            tokenExpiration
-          );
+          await redisQuery.blacklistToken(employee.employeeId);
         }
 
-        // Update client's last login
         await psqlCrud.updateStatusToOnline(employee.employeeId);
 
-        // Generate tokens
-        const accessToken = tokens.createAccessToken(
+        const [accessToken, refreshToken] = tokens.generateTokens(
           employee.email,
           employee.employeeId,
           employee.employeeRole
         );
-        const refreshToken = tokens.createRefreshToken(
-          employee.email,
-          employee.employeeId,
-          employee.employeeRole
-        );
-
-        // Save refresh token on client side
         tokens.sendRefreshToken(response, refreshToken);
-
-        // Save access and refresh tokens on Redis
-        await redisQuery.saveActiveToken(employee.employeeId, accessToken);
-        await redisQuery.saveRefreshToken(employee.employeeId, refreshToken);
+        await redisQuery.saveTokens(
+          employee.employeeId,
+          accessToken,
+          refreshToken
+        );
 
         return response.status(200).json({
           data: employee,
@@ -144,28 +98,14 @@ const loginAccount = async (request, response) => {
 };
 
 const logoutAccount = async (request, response) => {
-  // Clear refresh token on the client side
-  response.clearCookie("hrgenie", { path: "/refresh_token" });
-
-  // Revoke current access token
   const authorization = request.headers["authorization"];
   const accessToken = authorization ? authorization.split(" ")[1] : null;
 
   if (accessToken) {
     try {
-      const decodedToken = jwt.decode(accessToken);
-      const tokenExpiration = decodedToken.exp;
-
-      // Clear active and refresh tokens on Redis
-      await redisQuery.deleteActiveToken(request.employeeId);
-      await redisQuery.deleteRefreshToken(request.employeeId);
-
-      // Blacklist access token on Redis
-      await redisQuery.blacklistToken(
-        request.employeeId,
-        accessToken,
-        tokenExpiration
-      );
+      tokens.clearCookie(response);
+      await redisQuery.blacklistToken(request.employeeId);
+      await redisQuery.deleteTokens(request.employeeId);
 
       await psqlCrud.updateStatusToOffline(request.employeeId);
 
@@ -188,13 +128,13 @@ const renewRefreshToken = async (request, response) => {
   let payload;
 
   try {
-    payload = jwt.verify(currentRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+    payload = tokens.verifyRefreshToken(currentRefreshToken);
 
     // Check is account exists
-    const isAccountExists = await psqlValidate.checkIfEmailExists(
+    const [accountExists, account] = await psqlValidate.checkIfEmailExists(
       payload.email
     );
-    if (!isAccountExists) {
+    if (!accountExists) {
       return response.status(404).json({ error: "User not found." });
     }
 
@@ -203,24 +143,17 @@ const renewRefreshToken = async (request, response) => {
       return response.status(401).json({ error: "Authentication failed." });
     }
 
-    // Generate tokens
-    const newAccessToken = tokens.createAccessToken(
+    const [newAccessToken, newRefreshToken] = tokens.generateTokens(
       payload.email,
       payload.employeeId,
       payload.employeeRole
     );
-    const newRefreshToken = tokens.createRefreshToken(
-      payload.email,
-      payload.employeeId,
-      payload.employeeRole
-    );
-
-    // Save refresh token on client side
     tokens.sendRefreshToken(response, newRefreshToken);
-
-    // Save access and refresh tokens on Redis
-    await redisQuery.saveActiveToken(payload.employeeId, newAccessToken);
-    await redisQuery.saveRefreshToken(payload.employeeId, newRefreshToken);
+    await redisQuery.saveTokens(
+      payload.employeeId,
+      newAccessToken,
+      newRefreshToken
+    );
 
     return response.status(200).json({
       message: "Token successfully refreshed.",

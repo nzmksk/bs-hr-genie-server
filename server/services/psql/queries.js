@@ -26,10 +26,6 @@ SET department_id = CASE
     END`;
 
 // EMPLOYEE
-const changePasswordFirstTime = `UPDATE employee
-SET hashed_password = $1,
-    password_updated = TRUE
-WHERE employee_id = $2`;
 const deleteEmployee = `DELETE FROM employee
 WHERE employee_id = $1
 RETURNING *`;
@@ -76,6 +72,11 @@ RETURNING *`;
 const updateEmployeeRefreshToken = `UPDATE employee
 SET refresh_token = $1
 WHERE email = $2`;
+const updatePasswordFirstTime = `UPDATE employee
+SET hashed_password = $1,
+    password_updated = TRUE,
+    is_logged_in = FALSE
+WHERE employee_id = $2`;
 const updateStatusToOffline = `UPDATE employee
 SET is_logged_in = FALSE
 WHERE employee_id = $1`;
@@ -140,7 +141,6 @@ module.exports = {
   updateEmployeeDepartment,
 
   // Employee
-  changePasswordFirstTime,
   deleteEmployee,
   getEmployees,
   getEmployeeByEmail,
@@ -150,6 +150,7 @@ module.exports = {
   revokeAccessToken,
   updateEmployeeDetails,
   updateEmployeeRefreshToken,
+  updatePasswordFirstTime,
   updateStatusToOffline,
   updateStatusToOnline,
 

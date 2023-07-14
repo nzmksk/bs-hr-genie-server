@@ -1,31 +1,25 @@
 const jwt = require("jsonwebtoken");
 
-const createAccessToken = (email, employeeId, employeeRole) => {
-  return jwt.sign(
-    { email, employeeId, employeeRole },
-    process.env.ACCESS_TOKEN_SECRET,
-    {
-      expiresIn: "15m",
-    }
-  );
+const clearCookie = (response) => {
+  response.clearCookie("hrgenie", { path: "/refresh_token" });
 };
 
-const createRefreshToken = (email, employeeId, employeeRole) => {
-  return jwt.sign(
-    { email, employeeId, employeeRole },
-    process.env.REFRESH_TOKEN_SECRET,
-    {
-      notBefore: "15m",
-      expiresIn: "6h",
-    }
-  );
+const generateTokens = (email, employeeId, employeeRole) => {
+  const payload = { email, employeeId, employeeRole };
+
+  const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: "15m",
+  });
+
+  const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, {
+    notBefore: "15m",
+    expiresIn: "6h",
+  });
+
+  return [accessToken, refreshToken];
 };
 
 const sendRefreshToken = (response, refreshToken) => {
-  /**
-   * For options parameter
-   * @see https://expressjs.com/en/4x/api.html#res.cookie
-   */
   const options = {
     httpOnly: true,
     path: "/refresh_token",
@@ -47,8 +41,8 @@ const verifyRefreshToken = (refreshToken) => {
 };
 
 module.exports = {
-  createAccessToken,
-  createRefreshToken,
+  clearCookie,
+  generateTokens,
   sendRefreshToken,
   verifyAccessToken,
   verifyRefreshToken,

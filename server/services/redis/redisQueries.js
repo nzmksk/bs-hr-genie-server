@@ -1,10 +1,16 @@
+const jwt = require("jsonwebtoken");
+
 const redis = require("../../config/redis.js");
 
-const blacklistToken = async (employeeId, accessToken, expiryTime) => {
+const blacklistToken = async (employeeId) => {
   try {
+    const activeToken = await getActiveToken(employeeId);
+    const decodedToken = jwt.decode(activeToken);
+    const expiryTime = decodedToken.exp;
     const currentTime = new Date();
+
     if (expiryTime > currentTime) {
-      await redis.set(`${employeeId}:BT:${currentTime}`, accessToken, {
+      await redis.set(`${employeeId}:BT:${expiryTime}`, activeToken, {
         EXAT: expiryTime,
       });
     }
@@ -13,19 +19,12 @@ const blacklistToken = async (employeeId, accessToken, expiryTime) => {
   }
 };
 
-const deleteActiveToken = async (employeeId) => {
+const deleteTokens = async (employeeId) => {
   try {
     await redis.del(`${employeeId}:AT`);
-  } catch (error) {
-    throw new Error(`redis.deleteRefreshToken error: ${error.message}`);
-  }
-};
-
-const deleteRefreshToken = async (employeeId) => {
-  try {
     await redis.del(`${employeeId}:RT`);
   } catch (error) {
-    throw new Error(`redis.deleteRefreshToken error: ${error.message}`);
+    throw new Error(`redis.deleteTokens error: ${error.message}`);
   }
 };
 
@@ -59,35 +58,27 @@ const isTokenBlacklisted = async (employeeId, accessToken) => {
         blacklistArray.push(blacklistedToken);
       }
     }
+    
     return blacklistArray.includes(accessToken);
   } catch (error) {
     throw new Error(`redis.isTokenBlacklisted error: ${error.message}`);
   }
 };
 
-const saveActiveToken = async (employeeId, accessToken) => {
+const saveTokens = async (employeeId, accessToken, refreshToken) => {
   try {
     await redis.set(`${employeeId}:AT`, accessToken);
-  } catch (error) {
-    throw new Error(`redis.saveActiveToken error: ${error.message}`);
-  }
-};
-
-const saveRefreshToken = async (employeeId, refreshToken) => {
-  try {
     await redis.set(`${employeeId}:RT`, refreshToken);
   } catch (error) {
-    throw new Error(`redis.saveRefreshToken error: ${error.message}`);
+    throw new Error(`redis.saveTokens error: ${error.message}`);
   }
 };
 
 module.exports = {
   blacklistToken,
-  deleteActiveToken,
-  deleteRefreshToken,
+  deleteTokens,
   getActiveToken,
   getRefreshToken,
   isTokenBlacklisted,
-  saveActiveToken,
-  saveRefreshToken,
+  saveTokens,
 };

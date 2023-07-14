@@ -220,7 +220,10 @@ INSERT INTO leave (
 )
 VALUES ('HR003', 1, '2023-07-10', '2023-07-11', 'full-day', 2, 'approved'),
     ('HR003', 1, '2023-07-12', '2023-07-16', 'full-day', 5, 'rejected'),
-    ('HR003', 1, '2023-07-12', '2023-07-16', 'first-half', 0.5, 'pending');
+    ('HR003', 1, '2023-07-12', '2023-07-16', 'first-half', 0.5, 'pending'),
+    ('HR002', 1, '2023-07-10', '2023-07-11', 'full-day', 2, 'approved'),
+    ('HR002', 1, '2023-07-12', '2023-07-16', 'full-day', 5, 'rejected'),
+    ('HR002', 1, '2023-07-12', '2023-07-16', 'first-half', 0.5, 'pending');
 
 INSERT INTO leave_quota (employee_id, leave_type_id, quota)
 VALUES ('HR001', 1, 20),

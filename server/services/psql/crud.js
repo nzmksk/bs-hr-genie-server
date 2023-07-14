@@ -60,6 +60,19 @@ const registerEmployee = async (employeeObj) => {
   }
 };
 
+const updatePasswordFirstTime = async (hashedPassword, employeeId) => {
+  const query = {
+    text: psqlQuery.updatePasswordFirstTime,
+    values: [hashedPassword, employeeId],
+  };
+
+  try {
+    await pool.query(query);
+  } catch (error) {
+    throw new Error(`crud.updatePasswordFirstTime error: ${error.message}`);
+  }
+};
+
 const updateStatusToOffline = async (employeeId) => {
   const query = {
     text: psqlQuery.updateStatusToOffline,
@@ -89,6 +102,7 @@ const updateStatusToOnline = async (employeeId) => {
 module.exports = {
   allocateLeaves,
   registerEmployee,
+  updatePasswordFirstTime,
   updateStatusToOffline,
   updateStatusToOnline,
 };
