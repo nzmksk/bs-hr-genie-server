@@ -7,7 +7,7 @@ const blacklistToken = async (employeeId) => {
     const activeToken = await getActiveToken(employeeId);
     const decodedToken = jwt.decode(activeToken);
     const expiryTime = decodedToken.exp;
-    const currentTime = new Date();
+    const currentTime = Math.floor(Date.now() / 1000);
 
     if (expiryTime > currentTime) {
       await redis.set(`${employeeId}:BT:${expiryTime}`, activeToken, {
@@ -58,7 +58,7 @@ const isTokenBlacklisted = async (employeeId, accessToken) => {
         blacklistArray.push(blacklistedToken);
       }
     }
-    
+
     return blacklistArray.includes(accessToken);
   } catch (error) {
     throw new Error(`redis.isTokenBlacklisted error: ${error.message}`);
