@@ -6,7 +6,7 @@ const router = Router();
 
 router.get(
   "/",
-  roleAccessMiddleware(["superadmin", "admin"]),
+  roleAccessMiddleware(["admin", "manager", "employee"]),
   leaveController.getLeaveApplications
 );
 router.post(

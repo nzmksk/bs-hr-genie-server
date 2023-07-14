@@ -1,24 +1,29 @@
 const psqlQuery = require("../services/psql/queries.js");
 const pool = require("../config/db.js");
+const { LeaveApplicationModel } = require("../models/models.js");
 
-const getLeaveApplications = (request, response) => {
-  pool.query(
-    psqlQuery.getLeaveApplications,
-    [request.employeeId],
-    (error, results) => {
-      if (error) {
-        console.error(error);
-        return response.status(500).json({ message: "Internal server error." });
-      } else if (results.rows.length > 0) {
-        const leaveApplications = results.rows;
-        return response.status(200).json({ data: leaveApplications });
-      } else {
-        return response
-          .status(200)
-          .json({ data: [], message: "No data available." });
-      }
+const getLeaveApplications = async (request, response) => {
+  try {
+    const query = {
+      text: psqlQuery.getLeaveApplications,
+      values: [request.employeeId],
+    };
+    const result = await pool.query(query);
+    const leaveApplicationsArray = result.rows;
+
+    if (leaveApplicationsArray.length > 0) {
+      const data = leaveApplicationsArray.map((leaveApplication) => {
+        const leaveObject = new LeaveApplicationModel(leaveApplication);
+        return leaveObject;
+      });
+
+      return response.status(200).json({ data: data });
+    } else {
+      return response.status(404).json({ error: "Data not available." });
     }
-  );
+  } catch (error) {
+    return response.status(500).json({ error: error.message });
+  }
 };
 
 const getLeaveApplicationsByDepartment = (request, response) => {
