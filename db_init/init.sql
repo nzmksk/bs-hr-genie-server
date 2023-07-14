@@ -131,7 +131,12 @@ CREATE TRIGGER set_leave_id_trigger
     EXECUTE FUNCTION set_leave_id();
 
 INSERT INTO department (department_id, department_name)
-VALUES ('HR', 'Human Resources');
+VALUES ('HR', 'Human Resources'),
+    ('PD', 'Product Design'),
+    ('BE', 'Back End'),
+    ('FE', 'Front End'),
+    ('MOB', 'Mobile Department'),
+    ('QA', 'Quality Assurance');
 
 INSERT INTO employee (
     department_id,
@@ -168,13 +173,13 @@ VALUES (
     '1970-01-01 00:00:00'
 ),
 (
-    'HR',
+    'FE',
     'employee',
+    'Employee',
     'Jane',
-    'Doe',
     'female',
     'jane@domain.com',
-    'Talent Acquisition Specialist',
+    'Junior Frontend Developer',
     '$2b$10$usOESTL8LtiFvynFOJOEuOPvdshPTSu98nLoZ/ERhypB8JrYPHL4C',
     'false',
     '0123456789',
@@ -185,17 +190,51 @@ VALUES (
     null
 ),
 (
-    'HR',
+    'FE',
     'manager',
+    'Manager',
     'John',
-    'Doe',
     'male',
     'john@domain.com',
-    'Team Lead',
+    'Frontend Team Lead',
     '$2b$10$usOESTL8LtiFvynFOJOEuOPvdshPTSu98nLoZ/ERhypB8JrYPHL4C',
     'false',
     '0123456789',
     '123456789014',
+    'false',
+    '2020-03-06',
+    '1970-01-01 00:00:00',
+    null
+),
+(
+    'QA',
+    'resigned',
+    'Resigned',
+    'Joe',
+    'male',
+    'joe@domain.com',
+    'Junior QA Engineer',
+    '$2b$10$usOESTL8LtiFvynFOJOEuOPvdshPTSu98nLoZ/ERhypB8JrYPHL4C',
+    'false',
+    '0123456789',
+    '123456789015',
+    'true',
+    '2023-03-06',
+    '1970-01-01 00:00:00',
+    null
+),
+(
+    'HR',
+    'admin',
+    'Admin',
+    'Hana',
+    'female',
+    'hana@domain.com',
+    'Talent Acquisition Specialist',
+    '$2b$10$usOESTL8LtiFvynFOJOEuOPvdshPTSu98nLoZ/ERhypB8JrYPHL4C',
+    'false',
+    '0123456789',
+    '123456789016',
     'false',
     '2020-03-06',
     '1970-01-01 00:00:00',
@@ -218,12 +257,12 @@ INSERT INTO leave (
     duration_length,
     application_status
 )
-VALUES ('HR003', 1, '2023-07-10', '2023-07-11', 'full-day', 2, 'approved'),
-    ('HR003', 1, '2023-07-12', '2023-07-16', 'full-day', 5, 'rejected'),
-    ('HR003', 1, '2023-07-12', '2023-07-16', 'first-half', 0.5, 'pending'),
-    ('HR002', 1, '2023-07-10', '2023-07-11', 'full-day', 2, 'approved'),
-    ('HR002', 1, '2023-07-12', '2023-07-16', 'full-day', 5, 'rejected'),
-    ('HR002', 1, '2023-07-12', '2023-07-16', 'first-half', 0.5, 'pending');
+VALUES ('FE001', 1, '2023-07-10', '2023-07-11', 'full-day', 2, 'approved'),
+    ('FE001', 1, '2023-07-12', '2023-07-16', 'full-day', 5, 'rejected'),
+    ('FE001', 1, '2023-07-12', '2023-07-16', 'first-half', 0.5, 'pending'),
+    ('FE002', 1, '2023-07-10', '2023-07-11', 'full-day', 2, 'approved'),
+    ('FE002', 1, '2023-07-12', '2023-07-16', 'full-day', 5, 'rejected'),
+    ('FE002', 1, '2023-07-12', '2023-07-16', 'first-half', 0.5, 'pending');
 
 INSERT INTO leave_quota (employee_id, leave_type_id, quota)
 VALUES ('HR001', 1, 20),
@@ -231,13 +270,13 @@ VALUES ('HR001', 1, 20),
     ('HR001', 3, 0),
     ('HR001', 4, 20),
     ('HR001', 5, 60),
-    ('HR002', 1, 8),
-    ('HR002', 2, 14),
-    ('HR002', 3, 98),
-    ('HR002', 4, 8),
-    ('HR002', 5, 60),
-    ('HR003', 1, 16),
-    ('HR003', 2, 18),
-    ('HR003', 3, 0),
-    ('HR003', 4, 16),
-    ('HR003', 5, 60);
+    ('FE002', 1, 8),
+    ('FE002', 2, 14),
+    ('FE002', 3, 98),
+    ('FE002', 4, 8),
+    ('FE002', 5, 60),
+    ('FE001', 1, 16),
+    ('FE001', 2, 18),
+    ('FE001', 3, 0),
+    ('FE001', 4, 16),
+    ('FE001', 5, 60);

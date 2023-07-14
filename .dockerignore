@@ -1,5 +1,6 @@
-data/
 db_init/
+psql-data/
+redis-data/
 server/coverage/
 server/node_modules/
 server/npm-debug.log
@@ -9,3 +10,4 @@ server/npm-debug.log
 .gitignore
 docker-compose.yml
 Dockerfile
+README.md

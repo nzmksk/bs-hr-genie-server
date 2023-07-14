@@ -43,7 +43,7 @@ services:
     ports:
       - "35432:5432"
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - ./psql-data:/var/lib/postgresql/data
       - ./db_init/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - hr-network
@@ -57,11 +57,12 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - redis-data:/data
+      - ./redis-data:/data
     networks:
       - hr-network
 networks:
   hr-network:
     driver: bridge
 volumes:
+  psql-data:
   redis-data:

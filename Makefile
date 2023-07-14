@@ -17,8 +17,12 @@ redis-cli:
 	sudo docker exec -it hr-cache redis-cli
 
 server-down:
+	sudo docker-compose down
+
+server-down-reset:
 	sudo docker-compose down -v ; \
-	sudo rm -r data
+	sudo rm -r psql-data
+	sudo rm -r redis-data
 
 server-up:
 	sudo docker-compose up --build -d
