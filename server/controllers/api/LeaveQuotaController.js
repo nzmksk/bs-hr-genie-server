@@ -1,6 +1,6 @@
-const psqlQuery = require("../services/psql/queries.js");
-const pool = require("../config/db.js");
-const { GeneralLeaveQuotaModel } = require("../models/models.js");
+const psqlQuery = require("../../services/psql/queries.js");
+const pool = require("../../config/db.js");
+const { GeneralLeaveQuotaModel } = require("../../models/models.js");
 
 const getLeaveCount = async (request, response) => {
   try {

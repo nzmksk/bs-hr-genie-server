@@ -1,9 +1,9 @@
 const Router = require("express");
-const { employeeController } = require("../controllers/controllers.js");
+const { employeeController } = require("../../controllers/apiControllers.js");
 const {
   authMiddleware,
   roleAccessMiddleware,
-} = require("../middlewares/middlewares.js");
+} = require("../../middlewares/middlewares.js");
 const router = Router();
 
 router.get(

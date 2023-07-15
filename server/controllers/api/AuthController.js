@@ -1,10 +1,10 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const psqlCrud = require("../services/psql/crud.js");
-const psqlValidate = require("../services/psql/validations.js");
-const redisQuery = require("../services/redis/redisQueries.js");
-const tokens = require("../utils/tokens/tokens.js");
+const psqlCrud = require("../../services/psql/crud.js");
+const psqlValidate = require("../../services/psql/validations.js");
+const redisQuery = require("../../services/redis/redisQueries.js");
+const tokens = require("../../utils/tokens/tokens.js");
 
 const firstTimeLogin = async (request, response) => {
   const { password: plainPassword } = request.body;
@@ -47,7 +47,14 @@ const loginAccount = async (request, response) => {
 
     if (accountExists) {
       const employee = account;
-      if (employee.employeeRole === "resigned") {
+      if (
+        employee.employeeRole === "superadmin" ||
+        employee.employeeRole === "admin"
+      ) {
+        return response.status(400).json({
+          error: "Please login using the admin site.",
+        });
+      } else if (employee.employeeRole === "resigned") {
         return response.status(401).json({
           error:
             "Account is dormant. Please contact admin for further assistance.",

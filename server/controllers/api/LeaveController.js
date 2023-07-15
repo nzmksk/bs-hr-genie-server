@@ -1,6 +1,6 @@
-const psqlQuery = require("../services/psql/queries.js");
-const pool = require("../config/db.js");
-const { LeaveApplicationModel } = require("../models/models.js");
+const psqlQuery = require("../../services/psql/queries.js");
+const pool = require("../../config/db.js");
+const { LeaveApplicationModel } = require("../../models/models.js");
 
 const getLeaveApplications = async (request, response) => {
   try {
@@ -29,9 +29,8 @@ const getLeaveApplications = async (request, response) => {
 const getLeaveApplicationsByDepartment = (request, response) => {
   const departmentID = request.params.id;
   pool.query(
-    psqlQuery,
-    getLeaveApplicationsByDepartment,
-    [departmentID],
+    psqlQuery.getLeaveApplicationsByDepartment,
+    [departmentID.toUpperCase()],
     (error, results) => {
       if (error) {
         console.error(error);
@@ -46,6 +45,7 @@ const getLeaveApplicationsByDepartment = (request, response) => {
       }
     }
   );
+  console.log(departmentID.toUpperCase());
 };
 
 const applyLeave = (request, response) => {

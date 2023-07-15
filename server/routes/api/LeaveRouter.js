@@ -1,6 +1,6 @@
 const Router = require("express");
-const { leaveController } = require("../controllers/controllers.js");
-const { roleAccessMiddleware } = require("../middlewares/middlewares.js");
+const { leaveController } = require("../../controllers/apiControllers.js");
+const { roleAccessMiddleware } = require("../../middlewares/middlewares.js");
 
 const router = Router();
 

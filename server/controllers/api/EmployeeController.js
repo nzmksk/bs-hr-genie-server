@@ -1,8 +1,8 @@
-const pool = require("../config/db.js");
-const models  = require("../models/models.js");
-const psqlCrud = require("../services/psql/crud.js");
-const psqlQuery = require("../services/psql/queries.js");
-const psqlValidate = require("../services/psql/validations.js");
+const pool = require("../../config/db.js");
+const models  = require("../../models/models.js");
+const psqlCrud = require("../../services/psql/crud.js");
+const psqlQuery = require("../../services/psql/queries.js");
+const psqlValidate = require("../../services/psql/validations.js");
 
 const getEmployees = (request, response) => {
   pool.query(psqlQuery.getEmployees, (error, results) => {

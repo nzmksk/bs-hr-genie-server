@@ -1,5 +1,5 @@
-const psqlQuery = require("../services/psql/queries.js");
-const pool = require("../config/db.js");
+const psqlQuery = require("../../services/psql/queries.js");
+const pool = require("../../config/db.js");
 
 const createDepartment = (request, response) => {
   const { department_id, department_name } = request.body;

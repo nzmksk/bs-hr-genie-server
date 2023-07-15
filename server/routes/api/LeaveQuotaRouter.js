@@ -1,5 +1,5 @@
 const Router = require("express");
-const { leaveQuotaController } = require("../controllers/controllers.js");
+const { leaveQuotaController } = require("../../controllers/apiControllers.js");
 
 const router = Router();
 
