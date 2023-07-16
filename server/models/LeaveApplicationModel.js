@@ -1,3 +1,5 @@
+const { eachDayOfInterval, isWeekend, parseISO } = require("date-fns");
+
 class LeaveApplicationModel {
   constructor({
     leave_id,
@@ -27,6 +29,19 @@ class LeaveApplicationModel {
     this.createdAt = created_at;
     this.approvedRejectedBy = approved_rejected_by;
     this.rejectReason = reject_reason;
+  }
+
+  #getWorkingDays(startDate, endDate) {
+    const start = parseISO(startDate);
+    const end = parseISO(endDate);
+    const daysCount = eachDayOfInterval({ start: start, end: end });
+    const workingDays = daysCount.filter((day) => !isWeekend(day));
+    return workingDays.length;
+  }
+
+  calculateDuration() {
+    this.durationLength = this.#getWorkingDays(this.startDate, this.endDate);
+    return this.durationLength;
   }
 }
 

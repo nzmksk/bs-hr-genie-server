@@ -98,10 +98,11 @@ const applyLeave = `INSERT INTO leave (
     start_date,
     end_date,
     duration,
+    duration_length,
     reason,
     attachment
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING *`;
 const approveRejectLeave = `UPDATE leave
 SET employee_id = $1,
@@ -119,10 +120,17 @@ RETURNING *`;
 const deleteLeaveApplication = `DELETE FROM leave
 WHERE leave_id = $1
 RETURNING *`;
-const getLeaveApplications = `SELECT * FROM leave
-WHERE employee_id = $1`;
+const getLeaveApplications = `SELECT e.first_name,
+    e.last_name,
+    l.*
+FROM leave AS l
+JOIN employee AS e
+ON l.employee_id = e.employee_id
+WHERE l.employee_id = $1
+ORDER BY application_status ASC,
+    created_at DESC`;
 const getLeaveApplicationsByDepartment = `SELECT * FROM leave
-WHERE leave_id LIKE '%' || $1 || '%'`;
+WHERE leave_id LIKE $1 || '%'`;
 const getLeaveCount = `SELECT lc.leave_type_name, lq.quota
 FROM leave_category AS lc
 JOIN leave_quota AS lq

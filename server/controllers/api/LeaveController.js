@@ -1,91 +1,65 @@
-const psqlQuery = require("../../services/psql/queries.js");
 const pool = require("../../config/db.js");
 const { LeaveApplicationModel } = require("../../models/models.js");
+const psqlCrud = require("../../services/psql/crud.js");
+const psqlQuery = require("../../services/psql/queries.js");
 
 const getLeaveApplications = async (request, response) => {
   try {
-    const query = {
-      text: psqlQuery.getLeaveApplications,
-      values: [request.employeeId],
-    };
-    const result = await pool.query(query);
-    const leaveApplicationsArray = result.rows;
+    const [dataExists, results] = await psqlCrud.getLeaveApplications(
+      request.employeeId
+    );
 
-    if (leaveApplicationsArray.length > 0) {
-      const data = leaveApplicationsArray.map((leaveApplication) => {
-        const leaveObject = new LeaveApplicationModel(leaveApplication);
-        return leaveObject;
-      });
-
+    if (dataExists) {
+      const data = results;
       return response.status(200).json({ data: data });
     } else {
       return response.status(404).json({ error: "Data not available." });
     }
   } catch (error) {
-    return response.status(500).json({ error: error.message });
+    console.error(error.message);
+    return response.status(500).json({ error: "Internal server error" });
   }
 };
 
-const getLeaveApplicationsByDepartment = (request, response) => {
-  const departmentID = request.params.id;
-  pool.query(
-    psqlQuery.getLeaveApplicationsByDepartment,
-    [departmentID.toUpperCase()],
-    (error, results) => {
-      if (error) {
-        console.error(error);
-        return response.status(500).json({ message: "Internal server error." });
-      } else if (results.rows.length > 0) {
-        const leaveApplications = results.rows;
-        return response.status(200).json({ data: leaveApplications });
-      } else {
-        return response
-          .status(200)
-          .json({ data: [], message: "No data available." });
-      }
+const getLeaveApplicationsByDepartment = async (request, response) => {
+  console.log(request);
+  const departmentId = request.params.id;
+
+  try {
+    const [dataAvailable, leaveApplications] =
+      await psqlCrud.getLeaveApplicationsByDepartment(departmentId);
+
+    if (dataAvailable) {
+      return response.status(200).json({ data: leaveApplications });
+    } else {
+      return response
+        .status(200)
+        .json({ data: [], message: "No data available." });
     }
-  );
-  console.log(departmentID.toUpperCase());
+  } catch (error) {
+    console.error(error.message);
+    return response.status(500).json({ error: "Internal server error." });
+  }
 };
 
-const applyLeave = (request, response) => {
-  const {
-    employee_id,
-    leave_type_id,
-    start_date,
-    end_date,
-    duration,
-    reason,
-    attachment,
-  } = request.body;
-  pool.query(
-    psqlQuery.applyLeave,
-    [
-      employee_id,
-      leave_type_id,
-      start_date,
-      end_date,
-      duration,
-      reason,
-      attachment,
-    ],
-    (error, results) => {
-      if (error) {
-        console.error(error);
-        return response.status(500).json({ message: "Internal server error." });
-      } else {
-        const leaveApplication = results.rows[0];
-        return response.status(201).json({
-          data: leaveApplication,
-          message: "Leave application successfully submitted.",
-        });
-      }
-    }
-  );
+const applyLeave = async (request, response) => {
+  const leaveApplication = new LeaveApplicationModel(request.body);
+
+  try {
+    const data = await psqlCrud.applyLeave(leaveApplication);
+    return response.status(201).json({
+      data: data,
+      message: "Leave application successfully submitted.",
+    });
+  } catch (error) {
+    console.error(`applyLeave error: ${error.message}`);
+    return response.status(500).json({ error: "Internal server error." });
+  }
 };
 
-const approveRejectLeave = (request, response) => {
+const approveRejectLeave = async (request, response) => {
   const leave_id = request.params.id;
+
   const {
     employee_id,
     leave_type_id,
