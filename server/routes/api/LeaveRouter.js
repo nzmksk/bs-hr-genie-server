@@ -19,7 +19,7 @@ router.get(
   roleAccessMiddleware(["superadmin", "admin", "manager"]),
   leaveController.getLeaveApplicationsByDepartment
 );
-router.put(
+router.patch(
   "/:id",
   roleAccessMiddleware(["admin", "manager"]),
   leaveController.approveRejectLeave

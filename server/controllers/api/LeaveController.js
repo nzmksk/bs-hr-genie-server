@@ -60,35 +60,13 @@ const applyLeave = async (request, response) => {
 };
 
 const approveRejectLeave = async (request, response) => {
-  const leave_id = request.params.id;
+  const leaveId = request.params.id;
+  const approvedRejectedBy = request.employeeId;
 
-  const {
-    employee_id,
-    leave_type_id,
-    start_date,
-    end_date,
-    duration,
-    reason,
-    attachment,
-    application_status,
-    approved_rejected_by,
-    reject_reason,
-  } = request.body;
+  const { applicationStatus, rejectReason } = request.body;
   pool.query(
     psqlQuery.approveRejectLeave,
-    [
-      employee_id,
-      leave_type_id,
-      start_date,
-      end_date,
-      duration,
-      reason,
-      attachment,
-      application_status,
-      approved_rejected_by,
-      reject_reason,
-      leave_id,
-    ],
+    [applicationStatus, approvedRejectedBy, rejectReason, leaveId],
     (error, results) => {
       if (error) {
         console.error(error);

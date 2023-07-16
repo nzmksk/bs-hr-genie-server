@@ -105,17 +105,10 @@ const applyLeave = `INSERT INTO leave (
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING *`;
 const approveRejectLeave = `UPDATE leave
-SET employee_id = $1,
-    leave_type_id = $2,
-    start_date = $3,
-    end_date = $4,
-    duration = $5,
-    reason = $6,
-    attachment = $7,
-    application_status = $8,
-    approved_rejected_by = $9,
-    reject_reason = $10
-WHERE leave_id = $11
+SET application_status = $1,
+    approved_rejected_by = $2,
+    reject_reason = $3
+WHERE leave_id = $4
 RETURNING *`;
 const deleteLeaveApplication = `DELETE FROM leave
 WHERE leave_id = $1
