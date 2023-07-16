@@ -22,12 +22,14 @@ const getLeaveApplications = async (request, response) => {
 };
 
 const getLeaveApplicationsByDepartment = async (request, response) => {
-  console.log(request);
   const departmentId = request.params.id;
 
   try {
     const [dataAvailable, leaveApplications] =
-      await psqlCrud.getLeaveApplicationsByDepartment(departmentId);
+      await psqlCrud.getLeaveApplicationsByDepartment(
+        departmentId,
+        request.employeeId
+      );
 
     if (dataAvailable) {
       return response.status(200).json({ data: leaveApplications });

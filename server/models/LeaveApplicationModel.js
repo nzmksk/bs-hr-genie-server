@@ -4,6 +4,8 @@ class LeaveApplicationModel {
   constructor({
     leave_id,
     employee_id,
+    first_name,
+    last_name,
     leave_type_id,
     start_date,
     end_date,
@@ -18,6 +20,8 @@ class LeaveApplicationModel {
   }) {
     this.leaveId = leave_id;
     this.employeeId = employee_id;
+    this.firstName = first_name;
+    this.lastName = last_name;
     this.leaveTypeId = leave_type_id;
     this.startDate = start_date;
     this.endDate = end_date;

@@ -78,10 +78,10 @@ const getLeaveApplications = async (employeeId) => {
   }
 };
 
-const getLeaveApplicationsByDepartment = async (departmentId) => {
+const getLeaveApplicationsByDepartment = async (departmentId, employeeId) => {
   const query = {
     text: psqlQuery.getLeaveApplicationsByDepartment,
-    values: [departmentId.toUpperCase()],
+    values: [departmentId.toUpperCase(), employeeId],
   };
 
   try {

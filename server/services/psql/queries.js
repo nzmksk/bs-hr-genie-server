@@ -127,10 +127,18 @@ FROM leave AS l
 JOIN employee AS e
 ON l.employee_id = e.employee_id
 WHERE l.employee_id = $1
-ORDER BY application_status ASC,
-    created_at DESC`;
-const getLeaveApplicationsByDepartment = `SELECT * FROM leave
-WHERE leave_id LIKE $1 || '%'`;
+ORDER BY l.application_status ASC,
+    l.created_at DESC`;
+const getLeaveApplicationsByDepartment = `SELECT e.first_name,
+    e.last_name,
+    l.*
+FROM leave AS l
+JOIN employee AS e
+ON l.employee_id = e.employee_id
+WHERE l.leave_id LIKE $1 || '%'
+AND l.employee_id != $2
+ORDER BY l.application_status ASC,
+    l.created_at DESC`;
 const getLeaveCount = `SELECT lc.leave_type_name, lq.quota
 FROM leave_category AS lc
 JOIN leave_quota AS lq
