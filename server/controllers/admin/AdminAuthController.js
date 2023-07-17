@@ -31,8 +31,6 @@ const adminLogin = async (request, response) => {
               error,
             });
 
-          case "superadmin":
-          case "admin":
           default:
             break;
         }

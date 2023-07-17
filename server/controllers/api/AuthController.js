@@ -47,26 +47,29 @@ const loginAccount = async (request, response) => {
 
     if (accountExists) {
       const employee = account;
-      if (
-        employee.employeeRole === "superadmin" ||
-        employee.employeeRole === "admin"
-      ) {
-        return response.status(400).json({
-          error: "Please login using the admin site.",
-        });
-      } else if (employee.employeeRole === "resigned") {
-        return response.status(401).json({
-          error:
-            "Account is dormant. Please contact admin for further assistance.",
-        });
-      }
-
       const isValidPassword = await bcrypt.compare(
         password,
         employee.hashedPassword
       );
 
       if (isValidPassword) {
+        switch (employee.employeeRole) {
+          case "superadmin":
+          case "admin":
+            return response.status(400).json({
+              error: "Please login using the admin site.",
+            });
+  
+          case "resigned":
+            return response.status(401).json({
+              error:
+                "Account is dormant. Please contact admin for further assistance.",
+            });
+  
+          default:
+            break;
+        }
+
         if (employee.isLoggedIn) {
           await redisQuery.blacklistToken(employee.employeeId);
         }
@@ -137,7 +140,6 @@ const renewRefreshToken = async (request, response) => {
   try {
     payload = tokens.verifyRefreshToken(currentRefreshToken);
 
-    // Check is account exists
     const [accountExists, account] = await psqlValidate.checkIfEmailExists(
       payload.email
     );
