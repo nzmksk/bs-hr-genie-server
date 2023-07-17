@@ -1,4 +1,78 @@
-{% extends 'templates/base.njk' %}
-{% block content %}
-dashhb
+{% extends 'templates/base.njk' %} {% block content %}
+<div class="container-fluid mt-4 d-flex flex-column">
+  <div class="row p-2">
+    <div class="col-md-4">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Total Employees</h5>
+          <p class="card-text">1500</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">On Leave</h5>
+          <p class="card-text">50</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Pending Applications</h5>
+          <p class="card-text">5</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row p-2 flex-fill">
+    <div class="col-md-12 d-flex">
+      <div class="card w-100 mb-4">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex justify-content-between">
+            <h5 class="card-title">Registered Employees</h5>
+            <button class="btn btn-primary">Register New Employee</button>
+          </div>
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Dept. ID</th>
+                <th scope="col">Employee ID</th>
+                <th scope="col">Name</th>
+                <th scope="col">Gender</th>
+                <th scope="col">Email</th>
+                <th scope="col">Phone</th>
+                <th scope="col">Role</th>
+                <th scope="col">Position</th>
+                <th scope="col">Joined Date</th>
+                <th scope="col">Status</th>
+
+              </tr>
+            </thead>
+            <tbody class="table-group-divider">
+              <tr>
+                <th scope="row">1</th>
+                <td>Mark</td>
+                <td>Otto</td>
+                <td>@mdo</td>
+              </tr>
+              <tr>
+                <th scope="row">2</th>
+                <td>Jacob</td>
+                <td>Thornton</td>
+                <td>@fat</td>
+              </tr>
+              <tr>
+                <th scope="row">3</th>
+                <td colspan="2">Larry the Bird</td>
+                <td>@twitter</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock content %}
