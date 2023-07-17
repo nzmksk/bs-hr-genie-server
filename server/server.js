@@ -33,6 +33,7 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bo
 
 // SSR ROUTES
 app.use("/admin", adminRoutes.adminAuthRoutes);
+app.use("/admin", adminRoutes.pageRoutes);
 
 // API ROUTES
 app.use("/api/v1/", apiRoutes.authRoutes);
