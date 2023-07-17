@@ -16,27 +16,27 @@ const adminLogin = async (request, response) => {
 
     if (accountExists) {
       const employee = account;
-      switch (employee.employeeRole) {
-        case "employee":
-        case "manager":
-        case "resigned":
-          error = "Access denied.";
-          return response.status(401).render("login.njk", {
-            error,
-          });
-
-        case "superadmin":
-        case "admin":
-        default:
-          break;
-      }
-
       const isValidPassword = await bcrypt.compare(
         password,
         employee.hashedPassword
       );
 
       if (isValidPassword) {
+        switch (employee.employeeRole) {
+          case "employee":
+          case "manager":
+          case "resigned":
+            error = "Access denied.";
+            return response.status(401).render("login.njk", {
+              error,
+            });
+
+          case "superadmin":
+          case "admin":
+          default:
+            break;
+        }
+
         if (employee.isLoggedIn) {
           await redisQuery.blacklistToken(employee.employeeId);
         }
@@ -66,7 +66,7 @@ const adminLogin = async (request, response) => {
       return response.status(404).render("login.njk", { error });
     }
   } catch (error) {
-    console.error(`loginAccount error: ${error.message}`);
+    console.error(`adminLogin error: ${error.message}`);
     error = "Internal server error.";
     return response.status(500).render("login.njk", { error });
   }
