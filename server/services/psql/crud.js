@@ -2,6 +2,7 @@ const pool = require("../../config/db.js");
 const {
   EmployeeModel,
   LeaveApplicationModel,
+  GeneralLeaveQuotaModel,
 } = require("../../models/models.js");
 const generateAllocateLeaveQuery = require("./helpers/generateAllocateLeaveQuery.js");
 const psqlTransaction = require("./helpers/transactions.js");
@@ -54,6 +55,43 @@ const applyLeave = async (leaveApplication) => {
   }
 };
 
+const approveRejectLeave = async (
+  applicationStatus,
+  employeeId,
+  rejectReason,
+  leaveId
+) => {
+  const query = {
+    text: psqlQuery.approveRejectLeave,
+    values: [applicationStatus, employeeId, rejectReason, leaveId],
+  };
+
+  try {
+    const results = await pool.query(query);
+    const leaveApplication = new LeaveApplicationModel(results.rows[0]);
+
+    return leaveApplication;
+  } catch (error) {
+    throw new Error(`crud.approveRejectLeave error: ${error.message}`);
+  }
+};
+
+const deleteLeaveApplication = async (leaveId) => {
+  const query = {
+    text: psqlQuery.deleteLeaveApplication,
+    values: [leaveId],
+  };
+
+  try {
+    const results = await pool.query(query);
+    const leaveApplication = new LeaveApplicationModel(results.rows[0]);
+
+    return leaveApplication;
+  } catch (error) {
+    throw new Error(`crud.deleteLeaveApplication error: ${error.message}`);
+  }
+};
+
 const getLeaveApplications = async (employeeId) => {
   let data;
   const query = {
@@ -63,42 +101,68 @@ const getLeaveApplications = async (employeeId) => {
 
   try {
     const results = await pool.query(query);
-    const dataExists = results.rows.length > 0;
+    const dataAvailable = results.rows.length > 0;
 
-    if (dataExists) {
+    if (dataAvailable) {
       data = results.rows.map((leaveItem) => {
         const leaveApplication = new LeaveApplicationModel(leaveItem);
         return leaveApplication;
       });
     }
 
-    return [dataExists, data];
+    return [dataAvailable, data];
   } catch (error) {
     throw new Error(`crud.getLeaveApplications error: ${error.message}`);
   }
 };
 
 const getLeaveApplicationsByDepartment = async (departmentId, employeeId) => {
+  let data;
   const query = {
     text: psqlQuery.getLeaveApplicationsByDepartment,
-    values: [departmentId.toUpperCase(), employeeId],
+    values: [departmentId, employeeId],
   };
 
   try {
     const results = await pool.query(query);
-    console.log(results.rows);
     const dataAvailable = results.rows.length > 0;
-    const leaveApplications = results.rows.map((leaveItem) => {
-      const leaveApplication = new LeaveApplicationModel(leaveItem);
-      console.log("item", leaveApplication);
-      return leaveApplication;
-    });
 
-    return [dataAvailable, leaveApplications];
+    if (dataAvailable) {
+      data = results.rows.map((leaveItem) => {
+        const leaveApplication = new LeaveApplicationModel(leaveItem);
+        return leaveApplication;
+      });
+    }
+
+    return [dataAvailable, data];
   } catch (error) {
     throw new Error(
       `crud.getLeaveApplicationsByDepartment error: ${error.message}`
     );
+  }
+};
+
+const getLeaveCount = async (employeeId) => {
+  let data;
+  const query = {
+    text: psqlQuery.getLeaveCount,
+    values: [employeeId],
+  };
+
+  try {
+    const results = await pool.query(query);
+    const dataAvailable = results.rows.length > 0;
+
+    if (dataAvailable) {
+      data = results.rows.map((leaveType) => {
+        const leaveObject = new GeneralLeaveQuotaModel(leaveType);
+        return leaveObject;
+      });
+    }
+
+    return [dataAvailable, data];
+  } catch (error) {
+    throw new Error(`crud.getLeaveCount error: ${error.message}`);
   }
 };
 
@@ -178,8 +242,11 @@ const updateStatusToOnline = async (employeeId) => {
 module.exports = {
   allocateLeaves,
   applyLeave,
+  approveRejectLeave,
+  deleteLeaveApplication,
   getLeaveApplications,
   getLeaveApplicationsByDepartment,
+  getLeaveCount,
   registerEmployee,
   updatePasswordFirstTime,
   updateStatusToOffline,
