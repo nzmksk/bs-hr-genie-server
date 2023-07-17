@@ -92,6 +92,26 @@ const deleteLeaveApplication = async (leaveId) => {
   }
 };
 
+const getEmployees = async () => {
+  let data;
+  const query = { text: psqlQuery.getEmployees };
+
+  try {
+    const results = await pool.query(query);
+
+    if (results.rows.length > 0) {
+      data = results.rows.map((employee) => {
+        const employeeObj = new EmployeeModel(employee);
+        return employeeObj;
+      });
+    }
+
+    return data;
+  } catch (error) {
+    throw new Error(`crud.getEmployees error: ${error.message}`);
+  }
+};
+
 const getLeaveApplications = async (employeeId) => {
   let data;
   const query = {
@@ -244,6 +264,7 @@ module.exports = {
   applyLeave,
   approveRejectLeave,
   deleteLeaveApplication,
+  getEmployees,
   getLeaveApplications,
   getLeaveApplicationsByDepartment,
   getLeaveCount,
