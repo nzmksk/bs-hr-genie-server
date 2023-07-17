@@ -3,12 +3,11 @@ const bcrypt = require("bcrypt");
 const psqlCrud = require("../../services/psql/crud.js");
 const psqlValidate = require("../../services/psql/validations.js");
 const redisQuery = require("../../services/redis/redisQueries.js");
+const tokens = require("../../utils/tokens/tokens.js");
 
 const adminLogin = async (request, response) => {
   let error;
   const { email, password } = request.body;
-
-  // TODO: Implement CSRF token
 
   try {
     const [accountExists, account] = await psqlValidate.checkIfEmailExists(
@@ -37,7 +36,6 @@ const adminLogin = async (request, response) => {
         employee.hashedPassword
       );
 
-      // TODO: Update this function for SSR implementation
       if (isValidPassword) {
         if (employee.isLoggedIn) {
           await redisQuery.blacklistToken(employee.employeeId);
@@ -50,6 +48,7 @@ const adminLogin = async (request, response) => {
           employee.employeeId,
           employee.employeeRole
         );
+        tokens.sendAccessToken(response, accessToken);
         tokens.sendRefreshToken(response, refreshToken);
         await redisQuery.saveTokens(
           employee.employeeId,
@@ -57,11 +56,7 @@ const adminLogin = async (request, response) => {
           refreshToken
         );
 
-        return response.status(200).json({
-          data: employee,
-          message: "Authentication successful.",
-          token: accessToken,
-        });
+        return response.redirect(302, "/admin/dashboard");
       } else {
         error = "Invalid password";
         return response.status(401).render("login.njk", { error });

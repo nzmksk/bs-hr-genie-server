@@ -11,4 +11,12 @@ router.get("/login", async (request, response) => {
 
 router.post("/login", adminAuthController.adminLogin);
 
+router.get("/dashboard", async (request, response) => {
+  return response.render("dashboard.njk");
+});
+
+router.get("/employees", async (request, response) => {
+  return response.render("employees.njk");
+});
+
 module.exports = router;

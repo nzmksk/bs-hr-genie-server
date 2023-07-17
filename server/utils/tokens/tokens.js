@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 
 const clearCookie = (response) => {
+  response.clearCookie("access-token");
   response.clearCookie("hrgenie", { path: "/refresh_token" });
 };
 
@@ -17,6 +18,11 @@ const generateTokens = (email, employeeId, employeeRole) => {
   });
 
   return [accessToken, refreshToken];
+};
+
+const sendAccessToken = (response, accessToken) => {
+  const options = { httpOnly: true };
+  response.cookie("access-token", accessToken, options);
 };
 
 const sendRefreshToken = (response, refreshToken) => {
@@ -43,6 +49,7 @@ const verifyRefreshToken = (refreshToken) => {
 module.exports = {
   clearCookie,
   generateTokens,
+  sendAccessToken,
   sendRefreshToken,
   verifyAccessToken,
   verifyRefreshToken,
