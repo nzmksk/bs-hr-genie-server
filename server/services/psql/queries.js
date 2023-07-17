@@ -137,6 +137,14 @@ FROM leave_category AS lc
 JOIN leave_quota AS lq
 ON lq.leave_type_id = lc.leave_type_id
 WHERE lq.employee_id = $1`;
+const updateLeaveQuotaApproved = `UPDATE leave_quota
+SET quota = quota - 1,
+WHERE employee_id = $1
+AND leave_type_id = $2`;
+const updateLeaveQuotaCancelled = `UPDATE leave_quota
+SET quota = quota + 1,
+WHERE employee_id = $1
+AND leave_type_id = $2`;
 
 module.exports = {
   // Department
@@ -171,4 +179,6 @@ module.exports = {
   getLeaveApplications,
   getLeaveApplicationsByDepartment,
   getLeaveCount,
+  updateLeaveQuotaApproved,
+  updateLeaveQuotaCancelled,
 };

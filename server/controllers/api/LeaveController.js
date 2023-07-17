@@ -1,7 +1,5 @@
-const pool = require("../../config/db.js");
 const { LeaveApplicationModel } = require("../../models/models.js");
 const psqlCrud = require("../../services/psql/crud.js");
-const psqlQuery = require("../../services/psql/queries.js");
 
 const applyLeave = async (request, response) => {
   const leaveApplication = new LeaveApplicationModel(request.body);
@@ -31,6 +29,18 @@ const approveRejectLeave = async (request, response) => {
       rejectReason,
       leaveId
     );
+
+    if (data.applicationStatus === "approved") {
+      await psqlCrud.updateLeaveQuotaApproved(
+        data.employeeId,
+        data.leaveTypeId
+      );
+    } else if (data.applicationStatus === "cancelled") {
+      await psqlCrud.updateLeaveQuotaCancelled(
+        data.employeeId,
+        data.leaveTypeId
+      );
+    }
 
     return response.status(200).json({
       data: data,

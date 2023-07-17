@@ -220,6 +220,32 @@ const registerEmployee = async (employeeObj) => {
   }
 };
 
+const updateLeaveQuotaApproved = async (employeeId, leaveTypeId) => {
+  const query = {
+    text: psqlQuery.updateLeaveQuotaApproved,
+    values: [employeeId, leaveTypeId],
+  };
+
+  try {
+    await pool.query(query);
+  } catch (error) {
+    throw new Error(`crud.updateLeaveQuotaApproved error: ${error.message}`);
+  }
+};
+
+const updateLeaveQuotaCancelled = async (employeeId, leaveTypeId) => {
+  const query = {
+    text: psqlQuery.updateLeaveQuotaCancelled,
+    values: [employeeId, leaveTypeId],
+  };
+
+  try {
+    await pool.query(query);
+  } catch (error) {
+    throw new Error(`crud.updateLeaveQuotaCancelled error: ${error.message}`);
+  }
+};
+
 const updatePasswordFirstTime = async (hashedPassword, employeeId) => {
   const query = {
     text: psqlQuery.updatePasswordFirstTime,
@@ -269,6 +295,8 @@ module.exports = {
   getLeaveApplicationsByDepartment,
   getLeaveCount,
   registerEmployee,
+  updateLeaveQuotaApproved,
+  updateLeaveQuotaCancelled,
   updatePasswordFirstTime,
   updateStatusToOffline,
   updateStatusToOnline,
