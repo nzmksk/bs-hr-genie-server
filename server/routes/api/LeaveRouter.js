@@ -15,6 +15,11 @@ router.post(
   leaveController.applyLeave
 );
 router.get(
+  "/quota",
+  roleAccessMiddleware(["admin", "manager", "employee"]),
+  leaveController.getLeaveCount
+);
+router.get(
   "/:id",
   roleAccessMiddleware(["superadmin", "admin", "manager"]),
   leaveController.getLeaveApplicationsByDepartment
@@ -28,11 +33,6 @@ router.delete(
   "/:id",
   roleAccessMiddleware(["superadmin", "admin"]),
   leaveController.deleteLeaveApplication
-);
-router.get(
-  "/quota",
-  roleAccessMiddleware(["admin", "manager", "employee"]),
-  leaveController.getLeaveCount
 );
 
 module.exports = router;

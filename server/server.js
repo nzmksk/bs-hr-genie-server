@@ -46,7 +46,6 @@ app.use(
 );
 app.use("/api/v1/employees", authMiddleware, apiRoutes.employeeRoutes);
 app.use("/api/v1/leaves", authMiddleware, apiRoutes.leaveRoutes);
-app.use("/api/v1/leave_quota", authMiddleware, apiRoutes.leaveQuotaRoutes);
 
 app.listen(port, () => {
   console.log(`Server is listening on http://localhost:${port}`);
