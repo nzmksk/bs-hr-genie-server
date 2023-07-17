@@ -34,7 +34,11 @@ class EmployeeModel {
     this.phone = phone;
     this.nric = nric;
     this.isMarried = is_married;
-    this.joinedDate = joined_date;
+    this.joinedDate = joined_date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
     this.profileImage = profile_image;
     this.isLoggedIn = is_logged_in;
     this.createdAt = created_at;

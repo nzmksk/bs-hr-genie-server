@@ -5,6 +5,7 @@ const psqlQuery = require("../../services/psql/queries.js");
 
 const applyLeave = async (request, response) => {
   const leaveApplication = new LeaveApplicationModel(request.body);
+  leaveApplication.employeeId = request.employeeId;
 
   try {
     const data = await psqlCrud.applyLeave(leaveApplication);

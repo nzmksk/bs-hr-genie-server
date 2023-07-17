@@ -26,7 +26,7 @@ class LeaveApplicationModel {
     this.startDate = start_date;
     this.endDate = end_date;
     this.duration = duration;
-    this.durationLength = duration_length;
+    this.durationLength = duration_length ?? this.calculateDuration();
     this.reason = reason;
     this.attachment = attachment;
     this.applicationStatus = application_status;
@@ -39,6 +39,7 @@ class LeaveApplicationModel {
     const start = parseISO(startDate);
     const end = parseISO(endDate);
     const daysCount = eachDayOfInterval({ start: start, end: end });
+    console.log("count", daysCount);
     const workingDays = daysCount.filter((day) => !isWeekend(day));
     return workingDays.length;
   }

@@ -99,13 +99,13 @@ CREATE TYPE status_type AS ENUM (
 );
 CREATE SEQUENCE leave_id_seq;
 CREATE TABLE leave(
-    leave_id VARCHAR(10) PRIMARY KEY,
     employee_id VARCHAR(6) NOT NULL REFERENCES employee(employee_id) ON DELETE CASCADE,
+    leave_id VARCHAR(10) PRIMARY KEY,
     leave_type_id SMALLSERIAL NOT NULL REFERENCES leave_category(leave_type_id),
     start_date DATE,
     end_date DATE,
     duration duration_type,
-    duration_length NUMERIC(2, 1),
+    duration_length NUMERIC(3, 1),
     reason VARCHAR(255),
     attachment BYTEA,
     application_status status_type DEFAULT 'pending',
