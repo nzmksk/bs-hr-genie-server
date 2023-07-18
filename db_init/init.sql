@@ -83,7 +83,7 @@ CREATE TABLE leave_category(
 CREATE TABLE leave_quota(
     employee_id VARCHAR(6) NOT NULL REFERENCES employee(employee_id) ON DELETE CASCADE,
     leave_type_id SMALLSERIAL NOT NULL REFERENCES leave_category(leave_type_id),
-    quota SMALLINT NOT NULL
+    quota NUMERIC(3, 1) NOT NULL
 );
 
 CREATE TYPE duration_type AS ENUM (
