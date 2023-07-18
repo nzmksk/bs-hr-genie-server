@@ -6,6 +6,13 @@ const getEmployees = async (request, response) => {
   const offset = (currentPage - 1) * itemsPerPage;
 
   const employees = await psqlCrud.getEmployees();
+  employees.forEach((employee) => {
+    employee.joinedDate = employee.joinedDate.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  });
   const paginatedEmployees = employees.slice(offset, offset + itemsPerPage);
 
   const totalItems = employees.length;

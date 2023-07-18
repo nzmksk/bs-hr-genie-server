@@ -4,8 +4,6 @@ const {
   LeaveApplicationModel,
   GeneralLeaveQuotaModel,
 } = require("../../models/models.js");
-const generateAllocateLeaveQuery = require("./helpers/generateAllocateLeaveQuery.js");
-const psqlTransaction = require("./helpers/transactions.js");
 const psqlQuery = require("./queries.js");
 
 const allocateLeaves = async (
@@ -15,16 +13,25 @@ const allocateLeaves = async (
   emergencyLeave,
   unpaidLeave
 ) => {
-  const queryObjectsArray = generateAllocateLeaveQuery(
-    annualLeave,
-    medicalLeave,
-    parentalLeave,
-    emergencyLeave,
-    unpaidLeave
-  );
+  const query = {
+    text: psqlQuery.allocateLeave,
+    values: [
+      annualLeave.employeeId,
+      annualLeave.leaveTypeId,
+      annualLeave.quota,
+      medicalLeave.leaveTypeId,
+      medicalLeave.quota,
+      parentalLeave.leaveTypeId,
+      parentalLeave.quota,
+      emergencyLeave.leaveTypeId,
+      emergencyLeave.quota,
+      unpaidLeave.leaveTypeId,
+      unpaidLeave.quota,
+    ],
+  };
 
   try {
-    await psqlTransaction(queryObjectsArray);
+    await pool.query(query);
   } catch (error) {
     throw new Error(`crud.allocateLeaves error: ${error.message}`);
   }

@@ -91,7 +91,11 @@ const allocateLeave = `INSERT INTO leave_quota (
     leave_type_id,
     quota
 )
-VALUES ($1, $2, $3)`;
+VALUES ($1, $2, $3),
+    ($1, $4, $5),
+    ($1, $6, $7),
+    ($1, $8, $9),
+    ($1, $10, $11)`;
 const applyLeave = `INSERT INTO leave (
     employee_id,
     leave_type_id,

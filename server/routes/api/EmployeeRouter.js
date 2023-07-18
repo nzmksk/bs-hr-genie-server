@@ -11,16 +11,16 @@ router.get(
   roleAccessMiddleware(["superadmin", "admin", "manager"]),
   employeeController.getEmployees
 );
-router.get(
-  "/:id",
-  roleAccessMiddleware(["superadmin", "admin", "manager"]),
-  employeeController.getEmployeeById
-);
 router.post(
   "/register",
   authMiddleware,
   roleAccessMiddleware(["superadmin", "admin"]),
   employeeController.registerNewEmployee
+);
+router.get(
+  "/:id",
+  roleAccessMiddleware(["superadmin", "admin", "manager"]),
+  employeeController.getEmployeeById
 );
 router.put(
   "/:id",

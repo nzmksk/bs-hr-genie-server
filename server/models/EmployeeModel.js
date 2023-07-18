@@ -34,16 +34,37 @@ class EmployeeModel {
     this.phone = phone;
     this.nric = nric;
     this.isMarried = is_married;
-    this.joinedDate = joined_date.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    this.joinedDate = joined_date;
     this.profileImage = profile_image;
     this.isLoggedIn = is_logged_in;
     this.createdAt = created_at;
     this.lastLogin = last_login;
     this.cleanedEmail = this.cleanEmail();
+  }
+
+  static fromCamelCaseObject(obj) {
+    const snakeCaseObj = {
+      department_id: obj.departmentId,
+      employee_id: obj.employeeId,
+      employee_role: obj.employeeRole,
+      first_name: obj.firstName,
+      last_name: obj.lastName,
+      gender: obj.gender,
+      email: obj.email,
+      position: obj.position,
+      hashed_password: obj.hashedPassword,
+      password_updated: obj.isPasswordUpdated,
+      phone: obj.phone,
+      nric: obj.nric,
+      is_married: obj.isMarried,
+      joined_date: obj.joinedDate,
+      profile_image: obj.profileImage,
+      is_logged_in: obj.isLoggedIn,
+      created_at: obj.createdAt,
+      last_login: obj.lastLogin,
+    };
+
+    return new EmployeeModel(snakeCaseObj);
   }
 
   cleanEmail = () => {

@@ -1,5 +1,5 @@
 const pool = require("../../config/db.js");
-const models  = require("../../models/models.js");
+const models = require("../../models/models.js");
 const psqlCrud = require("../../services/psql/crud.js");
 const psqlQuery = require("../../services/psql/queries.js");
 const psqlValidate = require("../../services/psql/validations.js");
@@ -34,10 +34,12 @@ const getEmployeeById = (request, response) => {
 };
 
 const registerNewEmployee = async (request, response) => {
-  let employee = new models.EmployeeModel(request.body);
+  const employee = models.EmployeeModel.fromCamelCaseObject(request.body);
 
   try {
-    const isEmailExists = await psqlValidate.checkIfEmailExists(employee.email);
+    const [isEmailExists, account] = await psqlValidate.checkIfEmailExists(
+      employee.email
+    );
     if (isEmailExists) {
       return response
         .status(409)
