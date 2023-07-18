@@ -49,6 +49,7 @@ services:
       - hr-network
   redis:
     container_name: hr-cache
+    restart: always
     image: redis
     command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
     environment:

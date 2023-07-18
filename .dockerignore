@@ -10,4 +10,5 @@ server/npm-debug.log
 .gitignore
 docker-compose.yml
 Dockerfile
+Makefile
 README.md
