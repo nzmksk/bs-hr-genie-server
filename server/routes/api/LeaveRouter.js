@@ -14,6 +14,11 @@ router.post(
   roleAccessMiddleware(["admin", "manager", "employee"]),
   leaveController.applyLeave
 );
+router.patch(
+  "/cancel/:id",
+  roleAccessMiddleware(["employee", "manager"]),
+  leaveController.cancelApplication
+);
 router.get(
   "/quota",
   roleAccessMiddleware(["admin", "manager", "employee"]),

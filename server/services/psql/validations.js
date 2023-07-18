@@ -22,6 +22,29 @@ const checkIfEmailExists = async (email) => {
   }
 };
 
+const checkIfLeaveQuotaAvailable = async (
+  leaveTypeId,
+  employeeId,
+  durationLength
+) => {
+  let quota;
+  const query = {
+    text: psqlQuery.getLeaveQuota,
+    values: [leaveTypeId, employeeId],
+  };
+
+  try {
+    const results = await pool.query(query);
+    if (results.rows.length > 0) {
+      quota = results.rows[0].quota;
+    }
+
+    return quota > durationLength;
+  } catch (error) {
+    throw new Error(`checkIfLeaveQuotaAvailable error: ${error.message}`);
+  }
+};
+
 const checkIfNricExists = async (nric) => {
   try {
     const query = {
@@ -36,4 +59,8 @@ const checkIfNricExists = async (nric) => {
   }
 };
 
-module.exports = { checkIfEmailExists, checkIfNricExists };
+module.exports = {
+  checkIfEmailExists,
+  checkIfLeaveQuotaAvailable,
+  checkIfNricExists,
+};

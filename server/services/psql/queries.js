@@ -114,6 +114,9 @@ SET application_status = $1,
     reject_reason = $3
 WHERE leave_id = $4
 RETURNING *`;
+const cancelApplication = `UPDATE leave
+SET application_status = $1
+WHERE leave_id = $2`;
 const deleteLeaveApplication = `DELETE FROM leave
 WHERE leave_id = $1
 RETURNING *`;
@@ -126,6 +129,11 @@ ON l.employee_id = e.employee_id
 WHERE l.employee_id = $1
 ORDER BY l.application_status ASC,
     l.created_at DESC`;
+const getLeaveApplicationsByDate = `SELECT * FROM leave
+WHERE employee_id = $1
+AND start_date <= $2
+AND end_date >= $3
+AND application_status IN ('pending', 'approved')`;
 const getLeaveApplicationsByDepartment = `SELECT e.first_name,
     e.last_name,
     l.*
@@ -140,15 +148,19 @@ const getLeaveCount = `SELECT lc.leave_type_name, lq.quota
 FROM leave_category AS lc
 JOIN leave_quota AS lq
 ON lq.leave_type_id = lc.leave_type_id
-WHERE lq.employee_id = $1`;
+WHERE lq.employee_id = $1
+ORDER BY lq.leave_type_id ASC`;
+const getLeaveQuota = `SELECT quota FROM leave_quota
+WHERE leave_type_id = $1
+AND employee_id = $2`;
 const updateLeaveQuotaApproved = `UPDATE leave_quota
-SET quota = quota - 1,
-WHERE employee_id = $1
-AND leave_type_id = $2`;
+SET quota = quota - $1
+WHERE employee_id = $2
+AND leave_type_id = $3`;
 const updateLeaveQuotaCancelled = `UPDATE leave_quota
-SET quota = quota + 1,
-WHERE employee_id = $1
-AND leave_type_id = $2`;
+SET quota = quota + $1
+WHERE employee_id = $2
+AND leave_type_id = $3`;
 
 module.exports = {
   // Department
@@ -179,10 +191,13 @@ module.exports = {
   allocateLeave,
   applyLeave,
   approveRejectLeave,
+  cancelApplication,
   deleteLeaveApplication,
   getLeaveApplications,
+  getLeaveApplicationsByDate,
   getLeaveApplicationsByDepartment,
   getLeaveCount,
+  getLeaveQuota,
   updateLeaveQuotaApproved,
   updateLeaveQuotaCancelled,
 };

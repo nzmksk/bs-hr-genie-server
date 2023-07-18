@@ -39,13 +39,16 @@ class LeaveApplicationModel {
     const start = parseISO(startDate);
     const end = parseISO(endDate);
     const daysCount = eachDayOfInterval({ start: start, end: end });
-    console.log("count", daysCount);
     const workingDays = daysCount.filter((day) => !isWeekend(day));
     return workingDays.length;
   }
 
   calculateDuration() {
     this.durationLength = this.#getWorkingDays(this.startDate, this.endDate);
+    if (this.durationLength === 1 && this.duration !== "full-day") {
+      this.durationLength = 0.5;
+    }
+
     return this.durationLength;
   }
 }

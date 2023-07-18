@@ -1,16 +1,41 @@
 const { LeaveApplicationModel } = require("../../models/models.js");
 const psqlCrud = require("../../services/psql/crud.js");
+const psqlValidate = require("../../services/psql/validations.js");
 
 const applyLeave = async (request, response) => {
   const leaveApplication = new LeaveApplicationModel(request.body);
   leaveApplication.employeeId = request.employeeId;
 
   try {
-    const data = await psqlCrud.applyLeave(leaveApplication);
-    return response.status(201).json({
-      data: data,
-      message: "Leave application successfully submitted.",
-    });
+    const isWithinQuota = await psqlValidate.checkIfLeaveQuotaAvailable(
+      leaveApplication.leaveTypeId,
+      leaveApplication.employeeId,
+      leaveApplication.durationLength
+    );
+
+    if (isWithinQuota) {
+      const isAlreadyApplied = await psqlCrud.getLeaveApplicationsByDate(
+        leaveApplication.employeeId,
+        leaveApplication.startDate,
+        leaveApplication.endDate
+      );
+
+      if (isAlreadyApplied) {
+        return response
+          .status(400)
+          .json({ error: "You already applied leave(s) on this date." });
+      }
+
+      const data = await psqlCrud.applyLeave(leaveApplication);
+      return response.status(201).json({
+        data: data,
+        message: "Leave application successfully submitted.",
+      });
+    } else {
+      return response.status(400).json({
+        error: "You cannot apply more than allocated.",
+      });
+    }
   } catch (error) {
     console.error(`applyLeave error: ${error.message}`);
     return response.status(500).json({ error: "Internal server error." });
@@ -18,7 +43,7 @@ const applyLeave = async (request, response) => {
 };
 
 const approveRejectLeave = async (request, response) => {
-  const leaveId = request.params.id;
+  const leaveId = request.params.id.toUpperCase();
   const employeeId = request.employeeId;
   const { applicationStatus, rejectReason } = request.body;
 
@@ -31,23 +56,68 @@ const approveRejectLeave = async (request, response) => {
     );
 
     if (data.applicationStatus === "approved") {
-      await psqlCrud.updateLeaveQuotaApproved(
-        data.employeeId,
-        data.leaveTypeId
-      );
+      if (data.leaveTypeId === 1 || data.leaveTypeId === 4) {
+        await psqlCrud.updateLeaveQuotaApproved(
+          parseInt(data.durationLength),
+          data.employeeId,
+          1
+        );
+        await psqlCrud.updateLeaveQuotaApproved(
+          parseInt(data.durationLength),
+          data.employeeId,
+          4
+        );
+      } else {
+        await psqlCrud.updateLeaveQuotaApproved(
+          parseInt(data.durationLength),
+          data.employeeId,
+          data.leaveTypeId
+        );
+      }
     } else if (data.applicationStatus === "cancelled") {
-      await psqlCrud.updateLeaveQuotaCancelled(
-        data.employeeId,
-        data.leaveTypeId
-      );
+      if (data.leaveTypeId === 1 || data.leaveTypeId === 4) {
+        await psqlCrud.updateLeaveQuotaCancelled(
+          parseInt(data.durationLength),
+          data.employeeId,
+          1
+        );
+        await psqlCrud.updateLeaveQuotaCancelled(
+          parseInt(data.durationLength),
+          data.employeeId,
+          4
+        );
+      } else {
+        await psqlCrud.updateLeaveQuotaCancelled(
+          parseInt(data.durationLength),
+          data.employeeId,
+          data.leaveTypeId
+        );
+      }
     }
 
     return response.status(200).json({
       data: data,
-      message: `Leave application ${applicationStatus} successfully.`,
+      message: `Leave application ${data.applicationStatus} successfully.`,
     });
   } catch (error) {
     console.error(`approveRejectLeave error: ${error.message}`);
+    return response.status(500).json({ error: "Internal server error." });
+  }
+};
+
+const cancelApplication = async (request, response) => {
+  const leaveId = request.params.id.toUpperCase();
+  const applicationStatus = "cancelled";
+
+  try {
+    const data = await psqlCrud.cancelApplication(applicationStatus, leaveId);
+
+    return response.status(200).json({
+      data: data,
+      message: `Leave application ${data.applicationStatus} successfully.`,
+    });
+  } catch (error) {
+    console.error(`cancelApplication error: ${error.message}`);
     return response.status(500).json({ error: "Internal server error." });
   }
 };
@@ -123,6 +193,7 @@ const getLeaveCount = async (request, response) => {
 module.exports = {
   applyLeave,
   approveRejectLeave,
+  cancelApplication,
   deleteLeaveApplication,
   getLeaveApplications,
   getLeaveApplicationsByDepartment,

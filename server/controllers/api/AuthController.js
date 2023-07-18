@@ -42,7 +42,7 @@ const loginAccount = async (request, response) => {
   const { email, password } = request.body;
   try {
     const [accountExists, account] = await psqlValidate.checkIfEmailExists(
-      email
+      email.toLowerCase()
     );
 
     if (accountExists) {
@@ -59,13 +59,13 @@ const loginAccount = async (request, response) => {
             return response.status(400).json({
               error: "Please login using the admin site.",
             });
-  
+
           case "resigned":
             return response.status(401).json({
               error:
                 "Account is dormant. Please contact admin for further assistance.",
             });
-  
+
           default:
             break;
         }

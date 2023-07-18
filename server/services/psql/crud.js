@@ -68,6 +68,7 @@ const approveRejectLeave = async (
   rejectReason,
   leaveId
 ) => {
+  let data;
   const query = {
     text: psqlQuery.approveRejectLeave,
     values: [applicationStatus, employeeId, rejectReason, leaveId],
@@ -75,11 +76,32 @@ const approveRejectLeave = async (
 
   try {
     const results = await pool.query(query);
-    const leaveApplication = new LeaveApplicationModel(results.rows[0]);
+    if (results.rows.length > 0) {
+      data = new LeaveApplicationModel(results.rows[0]);
+    }
 
-    return leaveApplication;
+    return data;
   } catch (error) {
     throw new Error(`crud.approveRejectLeave error: ${error.message}`);
+  }
+};
+
+const cancelApplication = async (applicationStatus, leaveId) => {
+  let data;
+  const query = {
+    text: psqlQuery.cancelApplication,
+    values: [applicationStatus, leaveId],
+  };
+
+  try {
+    const results = await pool.query(query);
+    if (results.rows.length > 0) {
+      data = new LeaveApplicationModel(results.rows[0]);
+    }
+
+    return data;
+  } catch (error) {
+    throw new Error(`crud.cancelApplication error: ${error.message}`);
   }
 };
 
@@ -140,6 +162,20 @@ const getLeaveApplications = async (employeeId) => {
     return [dataAvailable, data];
   } catch (error) {
     throw new Error(`crud.getLeaveApplications error: ${error.message}`);
+  }
+};
+
+const getLeaveApplicationsByDate = async (employeeId, startDate, endDate) => {
+  const query = {
+    text: psqlQuery.getLeaveApplicationsByDate,
+    values: [employeeId, startDate, endDate],
+  };
+
+  try {
+    const results = await pool.query(query);
+    return results.rows.length > 0;
+  } catch (error) {
+    throw new Error(`crud.getLeaveApplicationsByDate error: ${error.message}`);
   }
 };
 
@@ -227,10 +263,10 @@ const registerEmployee = async (employeeObj) => {
   }
 };
 
-const updateLeaveQuotaApproved = async (employeeId, leaveTypeId) => {
+const updateLeaveQuotaApproved = async (quota, employeeId, leaveTypeId) => {
   const query = {
     text: psqlQuery.updateLeaveQuotaApproved,
-    values: [employeeId, leaveTypeId],
+    values: [quota, employeeId, leaveTypeId],
   };
 
   try {
@@ -240,10 +276,10 @@ const updateLeaveQuotaApproved = async (employeeId, leaveTypeId) => {
   }
 };
 
-const updateLeaveQuotaCancelled = async (employeeId, leaveTypeId) => {
+const updateLeaveQuotaCancelled = async (quota, employeeId, leaveTypeId) => {
   const query = {
     text: psqlQuery.updateLeaveQuotaCancelled,
-    values: [employeeId, leaveTypeId],
+    values: [quota, employeeId, leaveTypeId],
   };
 
   try {
@@ -296,9 +332,11 @@ module.exports = {
   allocateLeaves,
   applyLeave,
   approveRejectLeave,
+  cancelApplication,
   deleteLeaveApplication,
   getEmployees,
   getLeaveApplications,
+  getLeaveApplicationsByDate,
   getLeaveApplicationsByDepartment,
   getLeaveCount,
   registerEmployee,
