@@ -50,6 +50,10 @@ Follow these steps to set up and run the project using Docker.
   ```bash
   make server-down
   ```
+- To stop the server and reset database:
+  ```bash
+  make server-down-reset
+  ```
 - To run node.js terminal:
   ```bash
   make node-terminal
@@ -73,7 +77,7 @@ Follow these steps to set up and run the project using Docker.
 
 ## Base URL
 
-The base URL for all API endpoints is `http://localhost:2000`
+The base URL for all API endpoints is `http://localhost:2000/api/v1`
 
 ## Authentication
 
@@ -82,7 +86,6 @@ Authentication is required for accessing `[protected]` endpoints. The authentica
 Example GET request to protected endpoints in Dart:
 
 ```Dart
-   final baseUrl = "http://localhost:2000";
    final endpoint = "/protected_endpoint";
    final headers = {
       "Content-Type": "application/json",
@@ -145,7 +148,6 @@ The request should include the following parameters in the request body:
 Example request:
 
 ```Dart
-   final baseUrl = "http://localhost:2000";
    final endpoint = "/login";
    final headers = { "Content-Type": "application/json" };
    final body = {
@@ -212,6 +214,14 @@ Example request:
    }
   ```
 
+- Error: 400 Bad Request\
+  Superadmin and admin accounts are not accessible via the API. Example response:
+
+  ```JSON
+  {
+     "error": "Please login using the admin site."
+  }
+  ```
 - Error: 401 Unauthorized\
   The provided credentials were invalid. Example response:
   ```JSON
@@ -257,7 +267,6 @@ The request should include the following parameters in the request body:
 Example request:
 
 ```Dart
-   final baseUrl = "http://localhost:2000";
    final endpoint = "/first_login";
    final headers = {
       "Content-Type": "application/json",
@@ -306,7 +315,6 @@ This endpoint is used to renew client's access token using valid refresh token. 
 Example request:
 
 ```Dart
-   final baseUrl = "http://localhost:2000";
    final endpoint = "/refresh_token";
    final headers = {
       "Content-Type": "application/json",
@@ -359,7 +367,6 @@ This endpoint is used to revoke client's access and refresh tokens, effectively 
 Example request in Dart:
 
 ```Dart
-   final baseUrl = "http://localhost:2000";
    final endpoint = "/logout";
    final headers = {
       "Content-Type": "application/json",
