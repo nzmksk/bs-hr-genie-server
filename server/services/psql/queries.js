@@ -154,11 +154,13 @@ const getLeaveQuota = `SELECT quota FROM leave_quota
 WHERE leave_type_id = $1
 AND employee_id = $2`;
 const updateLeaveQuotaApproved = `UPDATE leave_quota
-SET quota = quota - $1
+SET quota = quota - $1,
+used_leave = used_leave + $1
 WHERE employee_id = $2
 AND leave_type_id = $3`;
 const updateLeaveQuotaCancelled = `UPDATE leave_quota
-SET quota = quota + $1
+SET quota = quota + $1,
+used_leave = used_leave - 1
 WHERE employee_id = $2
 AND leave_type_id = $3`;
 
