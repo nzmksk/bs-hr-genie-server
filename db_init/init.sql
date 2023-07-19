@@ -266,23 +266,6 @@ VALUES ('annual'),
     ('emergency'),
     ('unpaid');
 
-INSERT INTO leave (
-    employee_id,
-    leave_type_id,
-    start_date,
-    end_date,
-    duration,
-    duration_length,
-    application_status
-)
-VALUES ('FE001', 1, '2023-07-10', '2023-07-11', 'full-day', 2, 'approved'),
-    ('FE001', 1, '2023-07-12', '2023-07-16', 'full-day', 5, 'rejected'),
-    ('FE001', 1, '2023-07-12', '2023-07-16', 'first-half', 0.5, 'pending'),
-    ('FE001', 1, '2023-08-12', '2023-08-16', 'second-half', 0.5, 'pending'),
-    ('FE003', 1, '2023-07-10', '2023-07-11', 'full-day', 2, 'approved'),
-    ('FE003', 1, '2023-07-12', '2023-07-16', 'full-day', 5, 'rejected'),
-    ('FE003', 1, '2023-07-12', '2023-07-16', 'first-half', 0.5, 'pending');
-
 INSERT INTO leave_quota (employee_id, leave_type_id, quota)
 VALUES ('HR001', 1, 20),
     ('HR001', 2, 22),
@@ -294,6 +277,11 @@ VALUES ('HR001', 1, 20),
     ('FE001', 3, 98),
     ('FE001', 4, 8),
     ('FE001', 5, 60),
+    ('FE002', 1, 20),
+    ('FE002', 2, 22),
+    ('FE002', 3, 0),
+    ('FE002', 4, 20),
+    ('FE002', 5, 60),
     ('FE003', 1, 12),
     ('FE003', 2, 16),
     ('FE003', 3, 0),
