@@ -144,7 +144,7 @@ WHERE l.leave_id LIKE $1 || '%'
 AND l.employee_id != $2
 ORDER BY l.application_status ASC,
     l.created_at DESC`;
-const getLeaveCount = `SELECT lc.leave_type_name, lq.quota
+const getLeaveCount = `SELECT lc.leave_type_name, lq.quota, lq.used_leave
 FROM leave_category AS lc
 JOIN leave_quota AS lq
 ON lq.leave_type_id = lc.leave_type_id
