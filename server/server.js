@@ -1,6 +1,5 @@
 // Libraries
 const cookieParser = require("cookie-parser");
-const cors = require("cors");
 const express = require("express");
 const nunjucks = require("nunjucks");
 
@@ -22,12 +21,6 @@ app.set("views", __dirname + "/views");
 
 // Middlewares
 app.use(cookieParser()); // Parse cookies
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-  })
-);
 app.use(express.json()); // Parse JSON-encoded request bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
 
