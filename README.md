@@ -15,6 +15,12 @@
    - [POST /refresh_token](#post-refresh_token)
    - [POST /logout](#post-logout-protected)
 3. [Leave Application](#leave-application)
+   - [GET /leaves](#get-leaves-protected)
+   - [POST /leaves](#post-leaves-protected)
+   - [PATCH /leaves/cancel/:id](#patch-leavescancelid-protected)
+   - [GET /leaves/quota](#get-leavesquota-protected)
+   - [GET /leaves/:id](#get-leavesid-protected)
+   - [PATCH /leaves/:id](#patch-leavesid-protected)
 
 [Development Workflow](#development-workflow)
 
@@ -401,7 +407,7 @@ Example request in Dart:
 
 ## Leave Application
 
-[Prev: /logout](#post-logout-protected)
+[Prev: /logout](#post-logout-protected)\
 [Next: POST /leaves](#post-leaves-protected)
 
 ### GET /leaves `[protected]`
@@ -465,6 +471,9 @@ Example request in Dart:
      "error": "Internal server error."
   }
   ```
+
+[Prev: GET /leaves](#get-leaves-protected)\
+[Next: PATCH /leaves/cancel/:id](#patch-leavescancelid-protected)
 
 ### POST /leaves `[protected]`
 
@@ -557,6 +566,9 @@ Example request in Dart:
   }
   ```
 
+[Prev: POST /leaves](#post-leaves-protected)\
+[Next: GET /leaves/quota](#get-leavesquota-protected)
+
 ### PATCH /leaves/cancel/:id `[protected]`
 
 This endpoint is for employee accounts to cancel their pending leave application.
@@ -601,12 +613,15 @@ Example request in Dart:
    }
   ```
 - Error: 500 Internal Server Error\
-  The server encountered an unexpected condition that prevented it from fulfilling the request. Example response:
+   The server encountered an unexpected condition that prevented it from fulfilling the request. Example response:
   ```JSON
   {
      "error": "Internal server error."
   }
   ```
+
+[Prev: PATCH /leaves/cancel/:id](#patch-leavescancelid-protected)\
+[Next: GET /leaves/:id](#get-leavesid-protected)
 
 ### GET /leaves/quota `[protected]`
 
@@ -671,12 +686,15 @@ Example request in Dart:
   ```
 
 - Error: 500 Internal Server Error\
-  The server encountered an unexpected condition that prevented it from fulfilling the request. Example response:
+   The server encountered an unexpected condition that prevented it from fulfilling the request. Example response:
   ```JSON
   {
      "error": "Internal server error."
   }
   ```
+
+[Prev: GET /leaves/quota](#get-leavesquota-protected)\
+[Next: PATCH /leaves/:id](#patch-leavesid-protected)
 
 ### GET /leaves/:id `[protected]`
 
@@ -739,6 +757,8 @@ Example request in Dart:
      "error": "Internal server error."
   }
   ```
+
+[Prev: GET /leaves/:id](#get-leavesid-protected)
 
 ### PATCH /leaves/:id `[protected]`
 
