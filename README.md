@@ -14,6 +14,7 @@
    - [POST /first_login](#post-first_login-protected)
    - [POST /refresh_token](#post-refresh_token)
    - [POST /logout](#post-logout-protected)
+3. [Leave Application](#leave-application)
 
 [Development Workflow](#development-workflow)
 
@@ -222,6 +223,7 @@ Example request:
      "error": "Please login using the admin site."
   }
   ```
+
 - Error: 401 Unauthorized\
   The provided credentials were invalid. Example response:
   ```JSON
@@ -360,6 +362,7 @@ Example request:
   ```
 
 [Prev: /refresh_token](#post-refresh_token)
+[Next: /leaves](#get-leaves-protected)
 
 ### POST /logout `[protected]`
 
@@ -388,6 +391,416 @@ Example request in Dart:
      "message": "Token revoked successfully."
   }
   ```
+- Error: 500 Internal Server Error\
+  The server encountered an unexpected condition that prevented it from fulfilling the request. Example response:
+  ```JSON
+  {
+     "error": "Internal server error."
+  }
+  ```
+
+## Leave Application
+
+[Prev: /logout](#post-logout-protected)
+[Next: POST /leaves](#post-leaves-protected)
+
+### GET /leaves `[protected]`
+
+This endpoint is used to fetch past leave applications of the user.\
+Example request in Dart:
+
+```Dart
+   final endpoint = "/leaves";
+   final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "<your-access-token>",
+   };
+
+   final http.Response response = await http.get(
+      Uri.parse("$baseUrl$endpoint"),
+      headers: headers
+   );
+```
+
+**Response**
+
+- Success: 200 OK\
+  Data available and successfully fetched. Example response:
+  ```JSON
+  {
+     "data": [
+         {
+            "leaveId": "FE001-101",
+            "employeeId": "FE001",
+            "firstName": "Employee",
+            "lastName": "Jane",
+            "leaveTypeId": 1,
+            "startDate": "2023-07-17T00:00:00.000Z",
+            "endDate": "2023-07-17T00:00:00.000Z",
+            "duration": "full-day",
+            "durationLength": "1.0",
+            "reason": "To get some rest",
+            "attachment": null,
+            "applicationStatus": "pending",
+            "createdAt": "2023-07-20T01:45:57.799Z",
+            "approvedRejectedBy": null,
+            "rejectReason": null
+         }
+     ]
+  }
+  ```
+- Error: 404 Not Found\
+  There is no data available for the user's past applications. Example response:
+
+  ```JSON
+  {
+     "error": "Data not available."
+  }
+  ```
+
+- Error: 500 Internal Server Error\
+  The server encountered an unexpected condition that prevented it from fulfilling the request. Example response:
+  ```JSON
+  {
+     "error": "Internal server error."
+  }
+  ```
+
+### POST /leaves `[protected]`
+
+This endpoint is used to apply for leave.
+
+**Request**\
+The request should include the following parameters in the request body:
+| Parameter | Data Type | Restrictions | Option |
+| ----------- | ----------- | ----------- | ----------- |
+| employee_id | string | | Required |
+| leave_type_id | int | 1 for annual, 2 for medical, 3 for parental, 4 for emergency, 5 for unpaid | Required |
+| start_date | date | | Required |
+| end_date | date | | Required |
+| duration | string | [enum: 'full-day', 'first-half', 'second-half'] | Required |
+| reason | string | | Optional |
+| attachment | binary | | Optional |
+
+Example request in Dart:
+
+```Dart
+   final endpoint = "/leaves";
+   final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "<your-access-token>",
+   };
+   final body = {
+      "employee_id": "FE001",
+      "leave_type_id": 1,
+      "start_date": "2023-07-17",
+      "end_date": "2023-07-17",
+      "duration": "full-day",
+      "reason": "To get some rest",
+      "attachment": null
+   }
+
+   final http.Response response = await http.post(
+      Uri.parse("$baseUrl$endpoint"),
+      headers: headers,
+      body: jsonEncode(body)
+   );
+```
+
+**Response**
+
+- Success: 201 Created\
+  Leave application successfully submitted. Example response:
+  ```JSON
+   {
+      "data": {
+         "leaveId": "FE001-101",
+         "employeeId": "FE001",
+         "leaveTypeId": 1,
+         "startDate": "2023-07-17T00:00:00.000Z",
+         "endDate": "2023-07-17T00:00:00.000Z",
+         "duration": "full-day",
+         "durationLength": "1.0",
+         "reason": "To get some rest",
+         "attachment": null,
+         "applicationStatus": "pending",
+         "createdAt": "2023-07-20T01:45:57.799Z",
+         "approvedRejectedBy": null,
+         "rejectReason": null
+      },
+         "message": "Leave application successfully submitted."
+   }
+  ```
+- Error: 400 Bad Request\
+  The user have already applied leave on the same date. Example response:
+
+  ```JSON
+  {
+     "error": "You already applied leave(s) on this date."
+  }
+  ```
+
+- Error: 400 Bad Request\
+  The user applied leaves more than allocated. Example response:
+
+  ```JSON
+  {
+     "error": "You cannot apply more than allocated."
+  }
+  ```
+
+- Error: 500 Internal Server Error\
+  The server encountered an unexpected condition that prevented it from fulfilling the request. Example response:
+  ```JSON
+  {
+     "error": "Internal server error."
+  }
+  ```
+
+### PATCH /leaves/cancel/:id `[protected]`
+
+This endpoint is for employee accounts to cancel their pending leave application.
+
+Example request in Dart:
+
+```Dart
+   final endpoint = "/leaves/cancel/$leaveId";
+   final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "<your-access-token>",
+   };
+
+   final http.Response response = await http.patch(
+      Uri.parse("$baseUrl$endpoint"),
+      headers: headers
+   );
+```
+
+**Response**
+
+- Success: 200 OK\
+  Pending leave application successfully cancelled. Example response:
+  ```JSON
+   {
+      "data": {
+         "leaveId": "FE001-101",
+         "employeeId": "FE001",
+         "leaveTypeId": 1,
+         "startDate": "2023-07-17T00:00:00.000Z",
+         "endDate": "2023-07-17T00:00:00.000Z",
+         "duration": "full-day",
+         "durationLength": "1.0",
+         "reason": "To get some rest",
+         "attachment": null,
+         "applicationStatus": "cancelled",
+         "createdAt": "2023-07-20T01:45:57.799Z",
+         "approvedRejectedBy": null,
+         "rejectReason": null
+      },
+         "message": "Leave application cancelled successfully."
+   }
+  ```
+- Error: 500 Internal Server Error\
+  The server encountered an unexpected condition that prevented it from fulfilling the request. Example response:
+  ```JSON
+  {
+     "error": "Internal server error."
+  }
+  ```
+
+### GET /leaves/quota `[protected]`
+
+This endpoint is used to query the leave balances of a user.
+Example request in Dart:
+
+```Dart
+   final endpoint = "/leaves/quota";
+   final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "<your-access-token>",
+   };
+
+   final http.Response response = await http.get(
+      Uri.parse("$baseUrl$endpoint"),
+      headers: headers
+   );
+```
+
+**Response**
+
+- Success: 200 OK\
+  Leave quota successfully fetched. Example response:
+  ```JSON
+   {
+      "data": [
+         {
+            "leaveType": "annual",
+            "quota": "12.0",
+            "usedLeave": "0.0"
+         },
+         {
+            "leaveType": "medical",
+            "quota": "16.0",
+            "usedLeave": "0.0"
+         },
+         {
+            "leaveType": "parental",
+            "quota": "0.0",
+            "usedLeave": "0.0"
+         },
+         {
+            "leaveType": "emergency",
+            "quota": "12.0",
+            "usedLeave": "0.0"
+         },
+         {
+            "leaveType": "unpaid",
+            "quota": "60.0",
+            "usedLeave": "0.0"
+         }
+      ]
+   }
+  ```
+- Error: 404 Not Found\
+  There is no data available for the user's leave balances. Example response:
+
+  ```JSON
+  {
+     "error": "Data not available."
+  }
+  ```
+
+- Error: 500 Internal Server Error\
+  The server encountered an unexpected condition that prevented it from fulfilling the request. Example response:
+  ```JSON
+  {
+     "error": "Internal server error."
+  }
+  ```
+
+### GET /leaves/:id `[protected]`
+
+This endpoint is for manager accounts to fetch applications of their subordinates.\
+Example request in Dart:
+
+```Dart
+   final endpoint = "/leaves/$departmentId";
+   final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "<your-access-token>",
+   };
+
+   final http.Response response = await http.get(
+      Uri.parse("$baseUrl$endpoint"),
+      headers: headers
+   );
+```
+
+**Response**
+
+- Success: 200 OK\
+  Data available and successfully fetched. Example response:
+  ```JSON
+  {
+     "data": [
+         {
+            "leaveId": "FE001-101",
+            "employeeId": "FE001",
+            "firstName": "Employee",
+            "lastName": "Jane",
+            "leaveTypeId": 1,
+            "startDate": "2023-07-17T00:00:00.000Z",
+            "endDate": "2023-07-17T00:00:00.000Z",
+            "duration": "full-day",
+            "durationLength": "1.0",
+            "reason": "To get some rest",
+            "attachment": null,
+            "applicationStatus": "pending",
+            "createdAt": "2023-07-20T01:45:57.799Z",
+            "approvedRejectedBy": null,
+            "rejectReason": null
+         }
+     ]
+  }
+  ```
+- Error: 404 Not Found\
+  There is no data available for the user's past applications. Example response:
+
+  ```JSON
+  {
+     "error": "Data not available."
+  }
+  ```
+
+- Error: 500 Internal Server Error\
+  The server encountered an unexpected condition that prevented it from fulfilling the request. Example response:
+  ```JSON
+  {
+     "error": "Internal server error."
+  }
+  ```
+
+### PATCH /leaves/:id `[protected]`
+
+This endpoint is used for manager accounts to approve, reject, or revoke leave applications.\
+
+**Request**\
+The request should include the following parameters in the request body:
+| Parameter | Data Type | Restrictions | Option |
+| ----------------- | --------- | ------------------------------------------- | -------- |
+| applicationStatus | string | [enum: 'approved', 'rejected', 'cancelled'] | Required |
+| rejectReason | string | Max 255 characters | Optional |
+
+Example request in Dart:
+
+```Dart
+   final endpoint = "/leaves/$leaveId";
+   final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "<your-access-token>",
+   };
+   final body = {
+      "applicationStatus": "approved",
+      "rejectReason": null
+   };
+
+   final http.Response response = await http.patch(
+      Uri.parse("$baseUrl$endpoint"),
+      headers: headers,
+      body: jsonEncode(body)
+   );
+```
+
+**Response**
+
+- Success: 200 OK\
+  Leave application successfully approved/rejected/cancelled. Example response:
+
+  ```JSON
+  {
+     "data": [
+         {
+            "leaveId": "FE001-101",
+            "employeeId": "FE001",
+            "firstName": "Employee",
+            "lastName": "Jane",
+            "leaveTypeId": 1,
+            "startDate": "2023-07-17T00:00:00.000Z",
+            "endDate": "2023-07-17T00:00:00.000Z",
+            "duration": "full-day",
+            "durationLength": "1.0",
+            "reason": "To get some rest",
+            "attachment": null,
+            "applicationStatus": "approved",
+            "createdAt": "2023-07-20T01:45:57.799Z",
+            "approvedRejectedBy": "FE002",
+            "rejectReason": null
+         }
+     ],
+      "message": "Leave application <status> successfully."
+  }
+  ```
+
 - Error: 500 Internal Server Error\
   The server encountered an unexpected condition that prevented it from fulfilling the request. Example response:
   ```JSON
